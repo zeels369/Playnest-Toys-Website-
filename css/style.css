@@ -49,8 +49,18 @@
   --color-ink: #2D2D2D;
   --color-ink-muted: #5E636E;
   --color-white: #FFFFFF;
-  --color-whatsapp: #25D366;
+  --color-whatsapp: #25D366;   /* brand green — display/icon use only */
   --color-whatsapp-dark: #1EBE5D;
+
+  /* --- SEMANTIC: action fills (white label must clear 4.5:1) ---
+     White on brand coral is 4.15:1 and white on brand WhatsApp green is a
+     dismal 1.98:1 — both fail AA for button labels. These deeper tints keep the
+     colours unmistakably on-brand while passing: 5.20:1 and 5.23:1. */
+  --fill-action: #D1253C;
+  --fill-action-hover: #B81E33;
+  --text-accent: #D1253C;   /* coral used as TEXT on a surface */
+  --fill-wa: #0E7A6C;
+  --fill-wa-hover: #0A6459;
 
   /* --- SEMANTIC: surfaces --- */
   --surface-page: var(--color-offwhite);   /* body / section canvas          */
@@ -139,6 +149,8 @@
   --shadow-lg: 0 16px 36px rgba(27, 42, 94, 0.12);
   --shadow-floating: 0 20px 40px -10px rgba(27, 42, 94, 0.14), 0 0 1px rgba(27, 42, 94, 0.2);
   --shadow-glow-coral: 0 8px 25px rgba(230, 57, 80, 0.35);
+  --shadow-action: 0 6px 20px rgba(230, 57, 80, 0.30);
+  --shadow-wa: 0 4px 14px rgba(14, 122, 108, 0.30);
   --shadow-glow-yellow: 0 8px 25px rgba(255, 201, 60, 0.4);
   --shadow-drawer: -10px 0 40px rgba(27, 42, 94, 0.2);
 
@@ -165,6 +177,11 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     /* Accents: same hues, eased back so they don't glare on a dark ground */
+    --fill-action: #D1253C;
+    --fill-action-hover: #E0384F;
+    --text-accent: #FF7A88;
+    --fill-wa: #0E7A6C;
+    --fill-wa-hover: #12907F;
     --color-coral: #F25266;
     --color-coral-hover: #FF6B7D;
     --color-coral-light: #33202A;
@@ -226,6 +243,10 @@
 
   
     /* Shadows read as depth pools, not gray smudges, on a dark ground */
+    /* Neutral elevation on dark: a coloured halo here is AI-UI slop. */
+    --shadow-glow-coral: 0 10px 28px rgba(0, 0, 0, 0.55);
+    --shadow-action: 0 6px 20px rgba(0, 0, 0, 0.50);
+    --shadow-wa: 0 4px 14px rgba(0, 0, 0, 0.50);
     --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.40);
     --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.48);
     --shadow-lg: 0 16px 36px rgba(0, 0, 0, 0.58);
@@ -239,6 +260,11 @@
 /* Manual override — wins in both directions, including "force dark on a
    light system". Values are kept identical to the media-query block above. */
 :root[data-theme="dark"] {
+  --fill-action: #D1253C;
+  --fill-action-hover: #E0384F;
+  --text-accent: #FF7A88;
+  --fill-wa: #0E7A6C;
+  --fill-wa-hover: #12907F;
   --color-coral: #F25266;
   --color-coral-hover: #FF6B7D;
   --color-coral-light: #33202A;
@@ -299,6 +325,10 @@
   --hero-text-muted: #A9B0C4;
 
 
+  /* Neutral elevation on dark: a coloured halo here is AI-UI slop. */
+  --shadow-glow-coral: 0 10px 28px rgba(0, 0, 0, 0.55);
+  --shadow-action: 0 6px 20px rgba(0, 0, 0, 0.50);
+  --shadow-wa: 0 4px 14px rgba(0, 0, 0, 0.50);
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.40);
   --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.48);
   --shadow-lg: 0 16px 36px rgba(0, 0, 0, 0.58);
@@ -352,6 +382,14 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   outline: 3px solid var(--color-coral);
   outline-offset: 3px;
   border-radius: var(--radius-sm);
+}
+
+/* Anchor targets must clear the sticky header, otherwise every in-page jump
+   lands with the section heading hidden underneath it. */
+:target,
+section[id],
+#footer {
+  scroll-margin-top: calc(var(--header-height) + 16px);
 }
 
 /* Utility Container */
@@ -433,7 +471,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 }
 
 .nav-link:hover {
-  color: var(--color-coral);
+  color: var(--text-accent);
 }
 
 .nav-link::after {
@@ -441,15 +479,18 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   position: absolute;
   bottom: 0;
   left: 0;
-  width: 0;
+  width: 100%;
   height: 2px;
   background-color: var(--color-coral);
-  transition: width var(--transition-fast);
+  /* scaleX, not width: width relayouts on every frame. */
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--transition-fast);
   border-radius: 2px;
 }
 
 .nav-link:hover::after {
-  width: 100%;
+  transform: scaleX(1);
 }
 
 .header-actions {
@@ -477,8 +518,8 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 
 .header-cart-btn:hover {
   background-color: var(--surface-raised);
-  border-color: var(--color-coral);
-  color: var(--color-coral);
+  border-color: var(--text-accent);
+  color: var(--text-accent);
   transform: translateY(-1px);
 }
 
@@ -498,7 +539,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 }
 
 .cart-badge {
-  background-color: var(--color-coral);
+  background-color: var(--fill-action);
   color: var(--color-white);
   font-size: 0.75rem;
   font-weight: 700;
@@ -527,20 +568,20 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background-color: var(--color-whatsapp);
+  background-color: var(--fill-wa);
   color: var(--color-white);
   font-weight: 600;
   font-size: 0.88rem;
   padding: 9px 16px;
   border-radius: var(--radius-full);
-  box-shadow: 0 4px 12px rgba(37, 211, 102, 0.25);
+  box-shadow: var(--shadow-wa);
   transition: transform var(--transition-fast), background-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .header-wa-btn:hover {
-  background-color: var(--color-whatsapp-dark);
+  background-color: var(--fill-wa-hover);
   transform: translateY(-1px);
-  box-shadow: 0 6px 18px rgba(37, 211, 102, 0.35);
+  box-shadow: var(--shadow-wa);
 }
 
 .header-wa-icon {
@@ -790,7 +831,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   align-items: center;
   justify-content: center;
   gap: 10px;
-  background-color: var(--color-coral);
+  background-color: var(--fill-action);
   color: #FFFFFF;
   font-family: var(--font-body);
   font-weight: 600;
@@ -799,12 +840,12 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   border-radius: var(--radius-full);
   border: none;
   cursor: pointer;
-  box-shadow: 0 6px 20px rgba(230, 57, 80, 0.35);
+  box-shadow: var(--shadow-action);
   transition: transform var(--transition-fast), background-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .btn-primary:hover {
-  background-color: var(--color-coral-hover);
+  background-color: var(--fill-action-hover);
   transform: translateY(-2px) scale(1.02);
   box-shadow: var(--shadow-glow-coral);
 }
@@ -824,13 +865,13 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .btn-primary--wa {
   padding: 10px 20px;
   font-size: 0.9rem;
-  background-color: var(--color-whatsapp);
-  box-shadow: 0 4px 14px rgba(37, 211, 102, 0.3);
+  background-color: var(--fill-wa);
+  box-shadow: var(--shadow-wa);
 }
 
 .btn-primary--wa:hover {
-  background-color: var(--color-whatsapp-dark);
-  box-shadow: 0 8px 20px rgba(37, 211, 102, 0.42);
+  background-color: var(--fill-wa-hover);
+  box-shadow: var(--shadow-wa);
 }
 
 .hero-scroll-indicator {
@@ -886,11 +927,13 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   border-radius: 50%;
   background: var(--hero-text-muted);
   opacity: 0.45;
-  transition: height var(--transition-normal), background-color var(--transition-normal), border-radius var(--transition-normal);
+  /* transform, not height: animating height relayouts on every frame. */
+  transform-origin: center;
+  transition: transform var(--transition-normal), background-color var(--transition-normal), border-radius var(--transition-normal);
 }
 
 .beat-dot.active {
-  height: 20px;
+  transform: scaleY(2.85);
   border-radius: 4px;
   background: var(--color-coral);
 }
@@ -949,26 +992,24 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 
 .category-card {
   position: relative;
+  overflow: hidden;
   background-color: var(--surface-sunken);
   border-radius: var(--radius-lg);
-  padding: 24px 18px;
-  text-align: center;
+  padding: 20px;
   cursor: pointer;
   border: 2px solid transparent;
   box-shadow: var(--shadow-sm);
   transition: transform var(--transition-normal), box-shadow var(--transition-normal), border-color var(--transition-normal), background-color var(--transition-normal);
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 160px;
+  align-items: flex-end;
+  min-height: 156px;
 }
 
 .category-card:hover {
   transform: translateY(-4px);
   box-shadow: var(--shadow-md);
   background-color: var(--surface-sunken-soft);
-  border-color: rgba(230, 57, 80, 0.3);
+  border-color: var(--text-accent);
 }
 
 .category-card:active {
@@ -982,35 +1023,41 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   box-shadow: var(--shadow-md);
 }
 
-.category-icon-box {
-  width: 58px;
-  height: 58px;
-  background-color: var(--surface-raised);
-  border-radius: var(--radius-md);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 14px;
+/* Oversized glyph anchored to the corner and deliberately cropped by the card.
+   This is what breaks the generic 'icon tile above a heading' stack. */
+.category-glyph {
+  position: absolute;
+  top: -14px;
+  right: -18px;
+  width: 116px;
+  height: 116px;
   color: var(--text-heading);
-  box-shadow: 0 4px 10px rgba(27, 42, 94, 0.06);
-  transition: transform var(--transition-spring), color var(--transition-fast), background-color var(--transition-fast);
+  opacity: 0.16;
+  transform: rotate(-8deg);
+  transition: transform var(--transition-spring), opacity var(--transition-normal), color var(--transition-normal);
+  pointer-events: none;
 }
 
-.category-card:hover .category-icon-box,
-.category-card.active .category-icon-box {
+.category-card:hover .category-glyph,
+.category-card.active .category-glyph {
   color: var(--color-coral);
-  background-color: var(--color-coral-light);
-  transform: scale(1.08);
+  opacity: 0.30;
+  transform: rotate(-8deg) scale(1.08) translate(-4px, 4px);
 }
 
 .category-icon-svg {
-  width: 32px;
-  height: 32px;
+  width: 100%;
+  height: 100%;
   stroke: currentColor;
   fill: none;
-  stroke-width: 1.8;
+  stroke-width: 1.4;
   stroke-linecap: round;
   stroke-linejoin: round;
+}
+
+.category-label {
+  position: relative;
+  z-index: 1;
 }
 
 .category-name {
@@ -1018,7 +1065,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   font-size: 1.12rem;
   font-weight: 600;
   color: var(--text-heading);
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 
 .category-count {
@@ -1026,6 +1073,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   font-weight: 500;
   color: var(--text-muted);
 }
+
 
 /* ==========================================================================
    PRODUCT CATALOG SECTION (FILTERS, SEARCH, GRID)
@@ -1143,8 +1191,8 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 }
 
 .filter-pill-btn:hover {
-  border-color: var(--color-coral);
-  color: var(--color-coral);
+  border-color: var(--text-accent);
+  color: var(--text-accent);
 }
 
 .filter-pill-btn:active {
@@ -1275,7 +1323,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 
 .quick-view-trigger:hover {
   background: var(--surface-raised);
-  color: var(--color-coral);
+  color: var(--text-accent);
 }
 
 .card-body {
@@ -1358,7 +1406,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background-color: var(--color-coral);
+  background-color: var(--fill-action);
   color: var(--color-white);
   font-size: 0.9rem;
   font-weight: 600;
@@ -1370,9 +1418,9 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 }
 
 .btn-add-cart:hover {
-  background-color: var(--color-coral-hover);
+  background-color: var(--fill-action-hover);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(230, 57, 80, 0.3);
+  box-shadow: var(--shadow-action);
 }
 
 .btn-add-cart:active {
@@ -1486,7 +1534,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 
 .cart-close-btn:hover {
   background: var(--surface-sunken);
-  color: var(--color-coral);
+  color: var(--text-accent);
 }
 
 .cart-body {
@@ -1568,7 +1616,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 
 .qty-btn:hover {
   background: var(--surface-sunken);
-  color: var(--color-coral);
+  color: var(--text-accent);
 }
 
 .qty-number {
@@ -1590,7 +1638,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 }
 
 .cart-item-remove:hover {
-  color: var(--color-coral);
+  color: var(--text-accent);
 }
 
 .cart-empty-message {
@@ -1640,7 +1688,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   align-items: center;
   justify-content: center;
   gap: 10px;
-  background-color: var(--color-whatsapp);
+  background-color: var(--fill-wa);
   color: var(--color-white);
   font-size: 1rem;
   font-weight: 600;
@@ -1649,14 +1697,14 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   border: none;
   cursor: pointer;
   text-decoration: none;
-  box-shadow: 0 4px 14px rgba(37, 211, 102, 0.35);
+  box-shadow: var(--shadow-wa);
   transition: background-color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .btn-checkout-wa:hover {
-  background-color: var(--color-whatsapp-dark);
+  background-color: var(--fill-wa-hover);
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(37, 211, 102, 0.45);
+  box-shadow: var(--shadow-wa);
 }
 
 .btn-checkout-wa.disabled {
@@ -1813,6 +1861,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   display: grid;
   grid-template-columns: 1fr;
   gap: 20px;
+  padding: 0 0 4px;
 }
 
 @media (min-width: 720px) {
@@ -2015,27 +2064,27 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 }
 
 .modal-primary-btn.btn-in-stock {
-  background-color: var(--color-coral);
+  background-color: var(--fill-action);
   color: var(--color-white);
-  box-shadow: 0 4px 14px rgba(230, 57, 80, 0.3);
+  box-shadow: var(--shadow-action);
 }
 
 .modal-primary-btn.btn-in-stock:hover {
-  background-color: var(--color-coral-hover);
+  background-color: var(--fill-action-hover);
   transform: translateY(-1px);
   box-shadow: var(--shadow-glow-coral);
 }
 
 .modal-primary-btn.btn-wa-inquire {
-  background-color: var(--color-whatsapp);
+  background-color: var(--fill-wa);
   color: var(--color-white);
-  box-shadow: 0 4px 14px rgba(37, 211, 102, 0.3);
+  box-shadow: var(--shadow-wa);
 }
 
 .modal-primary-btn.btn-wa-inquire:hover {
-  background-color: var(--color-whatsapp-dark);
+  background-color: var(--fill-wa-hover);
   transform: translateY(-1px);
-  box-shadow: 0 6px 18px rgba(37, 211, 102, 0.38);
+  box-shadow: var(--shadow-wa);
 }
 
 .modal-secondary-link {
@@ -2179,7 +2228,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   gap: 8px;
   border: none;
   cursor: pointer;
-  box-shadow: 0 8px 24px rgba(27, 42, 94, 0.35);
+  box-shadow: var(--shadow-md);
   transition: transform var(--transition-spring), box-shadow var(--transition-fast);
 }
 
@@ -2189,7 +2238,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 }
 
 .floating-wa-btn {
-  background-color: var(--color-whatsapp);
+  background-color: var(--fill-wa);
   color: var(--color-white);
   font-weight: 600;
   font-size: 0.92rem;
@@ -2198,14 +2247,14 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   display: flex;
   align-items: center;
   gap: 8px;
-  box-shadow: 0 8px 24px rgba(37, 211, 102, 0.35);
+  box-shadow: var(--shadow-wa);
   transition: transform var(--transition-spring), box-shadow var(--transition-fast), background-color var(--transition-fast);
 }
 
 .floating-wa-btn:hover {
-  background-color: var(--color-whatsapp-dark);
+  background-color: var(--fill-wa-hover);
   transform: translateY(-3px) scale(1.03);
-  box-shadow: 0 12px 30px rgba(37, 211, 102, 0.45);
+  box-shadow: var(--shadow-lg);
 }
 
 @media (max-width: 540px) {
@@ -2432,5 +2481,128 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   .theme-transition *::before,
   .theme-transition *::after {
     transition: none !important;
+  }
+}
+
+/* ==========================================================================
+   MOTION
+
+   Added deliberately and sparingly. Every rule below animates only transform
+   and opacity, stays under 300ms (Emil Kowalski's UI budget), and uses the
+   project's existing easing vocabulary rather than inventing a parallel one.
+   High-frequency controls are intentionally NOT animated.
+   ========================================================================== */
+
+/* --- 1. Catalog re-render ------------------------------------------------
+   Filtering, searching or sorting replaces the grid's innerHTML, so cards
+   teleport. A short rise+fade bridges the swap and makes it legible that the
+   list changed. Staggered per card, capped so a 12-card grid still finishes
+   well inside a beat. Purely decorative: cards are interactive immediately. */
+@keyframes card-enter {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.product-grid .product-card {
+  animation: card-enter 260ms cubic-bezier(0.23, 1, 0.32, 1) both;
+  animation-delay: calc(var(--card-index, 0) * 28ms);
+}
+
+/* --- 2. Section reveal ---------------------------------------------------
+   Seen once per visit, so this is the delight budget, not a per-interaction
+   cost. .is-visible is added by an IntersectionObserver in js/app.js; the
+   observer marks everything visible immediately if the API is missing, so
+   content can never be stranded hidden. */
+.reveal {
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity 280ms cubic-bezier(0.23, 1, 0.32, 1),
+              transform 280ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* --- 3. Press feedback ---------------------------------------------------
+   Controls that had hover states but no press response. 140ms is below the
+   press-feedback ceiling so it reads as tactile, not laggy. */
+.floating-cart-btn:active,
+.floating-wa-btn:active,
+.quick-view-trigger:active,
+.modal-close-btn:active,
+.cart-close-btn:active,
+.theme-toggle:active {
+  transform: scale(0.95);
+  transition-duration: 140ms;
+}
+
+/* Quantity steppers are pressed repeatedly inside one session, so they get a
+   near-imperceptible response rather than the full press scale. */
+.qty-btn:active {
+  transform: scale(0.90);
+  transition-duration: 100ms;
+}
+
+/* --- Reduced motion: gentler, not zero ----------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .product-grid .product-card { animation: none; }
+  .reveal { opacity: 1; transform: none; transition: none; }
+}
+
+/* ==========================================================================
+   TOUCH TARGETS
+
+   On a coarse pointer, controls need ~44px of hittable area (WCAG 2.5.5 AAA /
+   Apple HIG). Several controls were sized for a mouse: the theme toggle at
+   32px, filter pills at ~31px, the sort select, the quick-view trigger and the
+   card buttons. Padding is raised rather than font size so the visual design is
+   unchanged on desktop.
+   ========================================================================== */
+@media (pointer: coarse) {
+  .filter-pill-btn,
+  .sort-select {
+    min-height: 44px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+
+  .btn-add-cart,
+  .btn-out-of-stock {
+    min-height: 46px;
+  }
+
+  .quick-view-trigger {
+    min-height: 40px;
+    padding: 9px 14px;
+  }
+
+  .qty-btn {
+    min-width: 40px;
+    min-height: 40px;
+  }
+
+  /* Footer category links are a navigation list, not prose, so the WCAG 2.5.5
+     inline-link exception does not apply — they get a real target height. */
+  .footer-links a,
+  .modal-secondary-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+
+  .cart-item-remove,
+  .cart-close-btn,
+  .modal-close-btn {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* The toggle keeps its 60x32 pill look, but the button around it takes the
+     full target area via padding so the hit region is honest. */
+  .theme-toggle {
+    padding: 6px;
+    margin: -6px;
   }
 }

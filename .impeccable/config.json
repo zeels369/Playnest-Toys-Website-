@@ -1,0 +1,20 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "cramped-padding",
+        "value": "modal-card",
+        "createdAt": "2026-08-21T14:09:40.935Z",
+        "reason": "Claude: the modal media column is a deliberate full-bleed product panel that meets the card's rounded corner; adding an inset would break that pattern. Info column carries its own 24px padding."
+      },
+      {
+        "rule": "pulsing-dot",
+        "value": "scroll-mouse-dot",
+        "createdAt": "2026-08-21T14:09:41.097Z",
+        "reason": "Claude: domain-appropriate — this is a scroll-driven hero and the dot is the affordance teaching that interaction. Disabled under prefers-reduced-motion."
+      }
+    ]
+  }
+}

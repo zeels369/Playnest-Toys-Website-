@@ -34,6 +34,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 7. Header Scroll Shadow
   initHeaderScroll();
+
+  // 8. Scroll reveals for section content
+  initScrollReveals();
 });
 
 /* ==========================================================================
@@ -324,11 +327,11 @@ function renderProducts() {
     return;
   }
 
-  grid.innerHTML = filtered.map(p => {
+  grid.innerHTML = filtered.map((p, i) => {
     const isAvailable = p.inStock !== false;
 
     return `
-      <article class="product-card" data-id="${p.id}">
+      <article class="product-card" data-id="${p.id}" style="--card-index:${i}">
         
         <!-- Media Container -->
         <div class="card-media" onclick="openProductModal('${p.id}')" role="button" tabindex="0" aria-label="View specifications for ${escapeHtml(p.name)}">
@@ -1004,4 +1007,40 @@ function initHeaderScroll() {
       header.classList.remove('scrolled');
     }
   }, { passive: true });
+}
+
+
+/* ==========================================================================
+   8. SCROLL REVEALS
+   Seen once per visit, so this sits in the delight budget rather than costing
+   anything per interaction. Fails safe: if IntersectionObserver is missing, or
+   the user prefers reduced motion, everything is marked visible immediately so
+   content can never be stranded hidden.
+   ========================================================================== */
+function initScrollReveals() {
+  const targets = document.querySelectorAll('.section-header, .category-card, .trust-item');
+  if (!targets.length) return;
+
+  const reveal = (el) => { el.classList.add('reveal', 'is-visible'); };
+
+  if (typeof window.IntersectionObserver !== 'function' ||
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    targets.forEach(reveal);
+    return;
+  }
+
+  targets.forEach((el, i) => {
+    el.classList.add('reveal');
+    el.style.transitionDelay = Math.min(i % 4, 3) * 60 + 'ms';
+  });
+
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (!entry.isIntersecting) return;
+      entry.target.classList.add('is-visible');
+      io.unobserve(entry.target);
+    });
+  }, { rootMargin: '0px 0px -12% 0px', threshold: 0.1 });
+
+  targets.forEach((el) => io.observe(el));
 }
