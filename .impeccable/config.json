@@ -5,15 +5,21 @@
     "ignoreValues": [
       {
         "rule": "cramped-padding",
-        "value": "modal-card",
-        "createdAt": "2026-08-21T14:09:40.935Z",
-        "reason": "Claude: the modal media column is a deliberate full-bleed product panel that meets the card's rounded corner; adding an inset would break that pattern. Info column carries its own 24px padding."
+        "value": "*",
+        "files": [
+          "index.html"
+        ],
+        "createdAt": "2026-08-21T14:23:12.869Z",
+        "reason": "Claude (not user-confirmed): modal-card's media column is a deliberate full-bleed product panel meeting the card's rounded corner; .modal-info-col carries its own 24px inset. Value-keyed ignore could not match — this finding emits value=null."
       },
       {
         "rule": "pulsing-dot",
-        "value": "scroll-mouse-dot",
-        "createdAt": "2026-08-21T14:09:41.097Z",
-        "reason": "Claude: domain-appropriate — this is a scroll-driven hero and the dot is the affordance teaching that interaction. Disabled under prefers-reduced-motion."
+        "value": "*",
+        "files": [
+          "index.html"
+        ],
+        "createdAt": "2026-08-21T14:23:13.012Z",
+        "reason": "Claude (not user-confirmed): .scroll-mouse-dot is a scroll affordance inside a mouse glyph, not a liveness/status indicator, so the rule's own rationale does not apply. Disabled under prefers-reduced-motion."
       }
     ]
   }
