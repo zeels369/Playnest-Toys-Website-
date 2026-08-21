@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 450" fill="none">
+  <defs>
+    <linearGradient id="bikeBody" x1="100" y1="100" x2="500" y2="350" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFC93C"/>
+      <stop offset="100%" stop-color="#E5A812"/>
+    </linearGradient>
+  </defs>
+  <ellipse cx="300" cy="395" rx="230" ry="22" fill="#1B2A5E" fill-opacity="0.22"/>
+  <!-- Handlebars -->
+  <path d="M220 160 L280 190 L270 240" stroke="#1B2A5E" stroke-width="10" stroke-linecap="round"/>
+  <circle cx="210" cy="155" r="12" fill="#E63950"/>
+  <!-- Body Frame -->
+  <path d="M220 220 C250 180 340 180 390 230 L450 250 L400 320 L270 330 Z" fill="url(#bikeBody)"/>
+  <!-- Seat -->
+  <path d="M330 200 C360 190 410 200 430 225 L370 235 Z" fill="#1B2A5E"/>
+  <!-- Exhaust Chrome -->
+  <path d="M290 320 L440 310 L470 280" stroke="#D5D0C3" stroke-width="8" stroke-linecap="round"/>
+  <!-- Front Wheel -->
+  <circle cx="180" cy="320" r="60" fill="#1F2433"/>
+  <circle cx="180" cy="320" r="38" fill="#E63950"/>
+  <circle cx="180" cy="320" r="16" fill="#1B2A5E"/>
+  <!-- Rear Wheel -->
+  <circle cx="440" cy="320" r="60" fill="#1F2433"/>
+  <circle cx="440" cy="320" r="38" fill="#E63950"/>
+  <circle cx="440" cy="320" r="16" fill="#1B2A5E"/>
+  <!-- Support Training Wheel -->
+  <circle cx="310" cy="355" r="18" fill="#151821"/>
+  <circle cx="310" cy="355" r="8" fill="#FFC93C"/>
+</svg>

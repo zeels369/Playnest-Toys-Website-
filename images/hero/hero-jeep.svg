@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 450" fill="none">
+  <defs>
+    <linearGradient id="jeepBody" x1="50" y1="100" x2="550" y2="350" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#1B2A5E"/>
+      <stop offset="100%" stop-color="#0D1635"/>
+    </linearGradient>
+  </defs>
+  <ellipse cx="300" cy="400" rx="240" ry="24" fill="#1B2A5E" fill-opacity="0.25"/>
+  <!-- Roll Cage -->
+  <path d="M180 200 L180 120 L400 120 L440 220" stroke="#FFC93C" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+  <line x1="280" y1="120" x2="280" y2="200" stroke="#FFC93C" stroke-width="8"/>
+  <!-- Spotlights on top -->
+  <circle cx="210" cy="110" r="10" fill="#FFC93C"/>
+  <circle cx="260" cy="110" r="10" fill="#FFC93C"/>
+  <circle cx="310" cy="110" r="10" fill="#FFC93C"/>
+  <circle cx="360" cy="110" r="10" fill="#FFC93C"/>
+  <!-- Jeep Body -->
+  <path d="M80 310 L100 240 L200 230 L230 180 L440 180 L470 240 L530 250 L530 330 L480 340 L120 340 Z" fill="url(#jeepBody)"/>
+  <!-- Accents -->
+  <rect x="80" y="270" width="30" height="20" rx="4" fill="#E63950"/>
+  <circle cx="105" cy="275" r="12" fill="#FFF9D2" stroke="#FFC93C" stroke-width="2"/>
+  <!-- Grill -->
+  <line x1="120" y1="260" x2="120" y2="300" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round" opacity="0.7"/>
+  <line x1="135" y1="260" x2="135" y2="300" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round" opacity="0.7"/>
+  <line x1="150" y1="260" x2="150" y2="300" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round" opacity="0.7"/>
+  <!-- Off-road Chunky Wheels -->
+  <circle cx="170" cy="350" r="62" fill="#151821"/>
+  <circle cx="170" cy="350" r="40" fill="#4B5563"/>
+  <circle cx="170" cy="350" r="18" fill="#FFC93C"/>
+  <circle cx="430" cy="350" r="62" fill="#151821"/>
+  <circle cx="430" cy="350" r="40" fill="#4B5563"/>
+  <circle cx="430" cy="350" r="18" fill="#FFC93C"/>
+</svg>

@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 450" fill="none">
+  <defs>
+    <linearGradient id="scooterBody" x1="100" y1="100" x2="500" y2="350" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#E63950"/>
+      <stop offset="100%" stop-color="#A5182D"/>
+    </linearGradient>
+  </defs>
+  <ellipse cx="300" cy="395" rx="220" ry="20" fill="#1B2A5E" fill-opacity="0.22"/>
+  <!-- Handlebars & Vintage Round Headlight -->
+  <path d="M250 140 L260 210 L270 300" stroke="#D5D0C3" stroke-width="10" stroke-linecap="round"/>
+  <circle cx="235" cy="140" r="18" fill="#FFF9D2" stroke="#FFC93C" stroke-width="3"/>
+  <!-- Vespa Curved Bodywork -->
+  <path d="M260 220 C240 280 250 330 290 340 L440 340 C490 320 480 250 440 230 C380 220 330 250 280 250 Z" fill="url(#scooterBody)"/>
+  <!-- Footboard -->
+  <rect x="270" y="325" width="80" height="15" rx="6" fill="#1B2A5E"/>
+  <!-- Seat Leather -->
+  <path d="M340 225 C360 205 440 210 460 230 L350 245 Z" fill="#6A3B1E"/>
+  <!-- Front Wheel -->
+  <circle cx="220" cy="340" r="45" fill="#1F2433"/>
+  <circle cx="220" cy="340" r="28" fill="#D5D0C3"/>
+  <circle cx="220" cy="340" r="12" fill="#E63950"/>
+  <!-- Rear Wheel -->
+  <circle cx="430" cy="340" r="45" fill="#1F2433"/>
+  <circle cx="430" cy="340" r="28" fill="#D5D0C3"/>
+  <circle cx="430" cy="340" r="12" fill="#E63950"/>
+</svg>

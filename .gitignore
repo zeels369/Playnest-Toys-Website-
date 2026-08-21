@@ -1,0 +1,60 @@
+# ---------------------------------------------------------------------------
+# Dependencies (76 MB — includes bundled ffmpeg binaries).
+# Only needed to RE-EXTRACT hero frames; the site itself ships zero deps.
+# Restore with: npm install
+# ---------------------------------------------------------------------------
+node_modules/
+
+# ---------------------------------------------------------------------------
+# Local scratch: throwaway browser profiles from preview/testing runs (25 MB).
+# ---------------------------------------------------------------------------
+scratch/
+
+# ---------------------------------------------------------------------------
+# Agent tooling, not website code (3.6 MB / 152 files).
+# Reinstallable from skills-lock.json, which IS committed.
+# ---------------------------------------------------------------------------
+.agents/
+
+# ---------------------------------------------------------------------------
+# Machine-local tooling config
+# ---------------------------------------------------------------------------
+.claude/settings.local.json
+
+# ---------------------------------------------------------------------------
+# Unused asset set (1.4 MB / 25 frames) from an abandoned logo-reveal
+# experiment — nothing in index.html, style.css or app.js references it.
+# ---------------------------------------------------------------------------
+images/logo-reveal-frames/
+
+# ---------------------------------------------------------------------------
+# OS / editor cruft
+# ---------------------------------------------------------------------------
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+*.swp
+
+# ---------------------------------------------------------------------------
+# Logs
+# ---------------------------------------------------------------------------
+npm-debug.log*
+*.log
+
+# ---------------------------------------------------------------------------
+# Internal business documents — NOT for a public repo.
+# Supplier scans / pricing workbook / reference photo. Kept local on purpose;
+# delete these lines only if the repo is private AND you want them versioned.
+# ---------------------------------------------------------------------------
+*.pdf
+*.xlsx
+WhatsApp Image*.jpeg
+
+# ---------------------------------------------------------------------------
+# Duplicate video sources.
+# videos/hero-source.mp4 is kept (it's the source for the hero frame sequence);
+# these two are byte-identical copies / unused footage.
+# ---------------------------------------------------------------------------
+videos/hf_*.mp4
+videos/logo-reveal-source.mp4
