@@ -12,7 +12,7 @@ Static HTML5, CSS3 Custom Properties, Vanilla JavaScript (ES6+), Node.js dev ser
 
 ## Users
 
-Indian parents and gift-givers purchasing premium electric ride-on toys (battery cars, bikes, jeeps, scooters) for young children aged 2–8. They prioritize build quality, child safety, battery longevity, warranty clarity, and ease of ordering directly via WhatsApp.
+Indian parents and gift-givers purchasing premium electric ride-on toys (battery cars, bikes, jeeps, scooters) for children aged 6–10. They prioritize build quality, child safety, battery longevity, warranty clarity, and ease of ordering directly via WhatsApp.
 
 ## Product Purpose
 
