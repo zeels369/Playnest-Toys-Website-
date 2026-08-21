@@ -4,19 +4,20 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Playnest Toys — Little Wheels, Big Smiles | Electric Ride-On Toys for Kids</title>
-  <meta name="description" content="Playnest Toys sells premium battery-operated electric ride-on cars, bikes, jeeps, and scooters for kids aged 2–8 in India. Select your models and order via WhatsApp.">
+  <meta name="description" content="Playnest Toys sells premium battery-operated electric ride-on cars, bikes, jeeps, and scooters for kids aged 6–10 in India. Select your models and order via WhatsApp.">
   <meta name="keywords" content="kids electric cars, ride on toys india, battery bike for kids, 4x4 kids jeep, toy scooter, playnest toys">
   
   <!-- Open Graph Meta -->
   <meta property="og:title" content="Playnest Toys — Little Wheels, Big Smiles">
-  <meta property="og:description" content="Battery-powered electric cars, bikes, jeeps, and scooters for kids aged 2–8. WhatsApp ordering across India.">
+  <meta property="og:description" content="Battery-powered electric cars, bikes, jeeps, and scooters for kids aged 6–10. WhatsApp ordering across India.">
   <meta property="og:image" content="images/logo.jpeg">
   <meta property="og:type" content="website">
 
-  <!-- Google Fonts: Kalam, Satisfy, Caveat (Script fonts), Fredoka (Display) + Inter (Body) -->
+  <!-- Google Fonts: Fredoka (display) + Figtree (body, variable 400–700) + Caveat (script wordmark).
+       Kalam and Satisfy were loaded here but never referenced in CSS or JS — removed. -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Fredoka:wght@500;600;700&family=Inter:wght@400;500;600;700&family=Kalam:wght@400;700&family=Satisfy&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Figtree:wght@400..700&family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
 
   <!-- Theme color for mobile browser chrome (kept in sync by applyTheme() in app.js) -->
   <meta name="theme-color" content="#FAFAF7" id="themeColorMeta">
@@ -101,14 +102,20 @@
 
   <!-- =========================================================================
        CINEMATIC SCROLL-DRIVEN HERO (4-BEAT SEQUENCE)
-       Scroll-scrubbed video frame sequence drawn to a <canvas>.
-       Frames: 22 stills from videos/hero-source.mp4, served as WebP with a
-       JPEG fallback (see js/app.js -> initScrollHero).
+       Scroll-scrubbed frame sequence drawn to a <canvas>.
+       Frames: 22 TRANSPARENT stills from videos/hero-jeep-alpha.mp4, served as
+       WebP-with-alpha over a CSS stage (see js/app.js -> initScrollHero).
        ========================================================================= -->
   <section class="hero-scroll-container" id="hero">
     <div class="hero-sticky-viewport" id="heroViewport">
 
-      <!-- Scroll-scrubbed frame canvas (fills the viewport behind the overlays) -->
+      <!-- Themed stage behind the transparent subject. Pure CSS, so the hero
+           re-themes without needing a second frame set. The radial glow gives
+           the black jeep a silhouette to sit against in dark mode. -->
+      <div class="hero-stage" aria-hidden="true"></div>
+
+      <!-- Scroll-scrubbed frame canvas. Frames are WebP WITH ALPHA, so the
+           canvas composites the child + jeep straight onto the stage above. -->
       <canvas class="hero-frame-canvas" id="heroCanvas" aria-hidden="true"></canvas>
 
       <!-- Shown until the first frame has been decoded and painted -->
@@ -116,9 +123,9 @@
         <div class="hero-loader-spinner"></div>
       </div>
 
-      <!-- Readability scrim. Opacity stops are derived from measured frame
-           luminance so the text band never drops below WCAG AA against white
-           type at ANY scroll position — see css/style.css. -->
+      <!-- Readability scrim. Sits ABOVE the subject and is kept light, because
+           the stage behind is already a controlled brand colour rather than
+           unpredictable video luminance — see css/style.css. -->
       <div class="hero-scrim" aria-hidden="true"></div>
 
       <!-- Beat Progression Indicator Dots -->
@@ -175,7 +182,7 @@
           </div>
 
           <p class="hero-subtitle" id="heroSubtitle">
-            Safe, thrilling battery-powered ride-on cars, bikes, jeeps & scooters for kids aged 2–8.
+            Safe, thrilling battery-powered ride-on cars, bikes, jeeps & scooters for kids aged 6–10.
           </p>
           <p class="hero-warm-note">
             "Crafted for pure childhood joy — because the best memories are made on little wheels."

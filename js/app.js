@@ -605,7 +605,7 @@ function initScrollHero() {
 
   if (!heroContainer || !canvas) return;
 
-  const ctx = canvas.getContext('2d', { alpha: false });
+  const ctx = canvas.getContext('2d', { alpha: true });
   const frames = new Array(TOTAL_FRAMES);
   let currentFrameIndex = -1;
   let firstPaintDone = false;
@@ -623,11 +623,14 @@ function initScrollHero() {
   }
 
   const useWebp = supportsWebp();
-  const FRAME_DIR = useWebp ? 'images/hero-frames-webp/' : 'images/hero-frames/';
-  const FRAME_EXT = useWebp ? '.webp' : '.jpg';
+  // Alpha WebP is ~97% supported. Rather than ship a 15 MB transparent PNG
+  // sequence for the remainder, those browsers get one static poster frame.
+  const FRAME_DIR = 'images/hero-frames-webp/';
+  const POSTER = 'images/hero-poster.png';
 
   function frameSrc(num) {
-    return FRAME_DIR + 'frame-' + String(num).padStart(3, '0') + FRAME_EXT;
+    if (!useWebp) return POSTER;
+    return FRAME_DIR + 'frame-' + String(num).padStart(3, '0') + '.webp';
   }
 
   // --- Canvas sizing -----------------------------------------------------
@@ -641,7 +644,19 @@ function initScrollHero() {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   }
 
-  // --- Draw one frame with object-fit: cover semantics --------------------
+  // --- Draw one frame, fitted to the hero's subject stage ---
+  // NOT object-fit:cover. Cover scales a 16:9 plate to fill the viewport, which
+  // blows the child + jeep up until they swallow the tagline and the CTA.
+  // Instead the subject is fitted to a share of the viewport and anchored above
+  // the CTA lane, so the composition holds at any window size.
+  // The camera pushes in until the vehicle exceeds the source frame, so the
+  // late frames are edge-to-edge by construction. Rather than fight that, the
+  // subject is allowed to grow and bleed off the viewport — which IS the push-in
+  // — while the headline fades out and hands the frame over to it.
+  const SUBJECT_WIDTH = 0.94;    // of viewport width
+  const SUBJECT_MAX_H = 0.66;    // of viewport height
+  const SUBJECT_BOTTOM = 0.09;   // gap from viewport bottom to the tyres
+
   function drawFrame(img) {
     if (!img || !img.complete || img.naturalWidth === 0) return;
 
@@ -649,11 +664,16 @@ function initScrollHero() {
     const ch = canvas.clientHeight;
     if (!cw || !ch) return;
 
-    const scale = Math.max(cw / img.naturalWidth, ch / img.naturalHeight);
-    const dw = img.naturalWidth * scale;
-    const dh = img.naturalHeight * scale;
+    let dw = cw * SUBJECT_WIDTH;
+    let dh = dw * (img.naturalHeight / img.naturalWidth);
+    const maxH = ch * SUBJECT_MAX_H;
+    if (dh > maxH) { dh = maxH; dw = dh * (img.naturalWidth / img.naturalHeight); }
 
-    ctx.drawImage(img, (cw - dw) / 2, (ch - dh) / 2, dw, dh);
+    const dx = (cw - dw) / 2;
+    const dy = ch - ch * SUBJECT_BOTTOM - dh;
+
+    ctx.clearRect(0, 0, cw, ch);
+    ctx.drawImage(img, dx, dy, dw, dh);
 
     if (!firstPaintDone) {
       firstPaintDone = true;
@@ -705,8 +725,8 @@ function initScrollHero() {
     paint(priority);
     currentFrameIndex = priority;
 
-    // Reduced motion stops here: one frame, no sequence, no scroll work.
-    if (prefersReduced) return;
+    // Reduced motion, or no WebP support: one frame, no sequence, no scroll work.
+    if (prefersReduced || !useWebp) return;
 
     // Stream the rest in order, repainting if the user has already scrolled
     // past the frames that have arrived.
@@ -792,15 +812,14 @@ function initScrollHero() {
     }
 
     // --- Overlay text drifts up and softens as the camera pushes in ---
+    // Beats 0–1 the wordmark leads; by Beat 2 it has handed off to the footage.
+    // The subject grows as the camera pushes in, so without this handoff the
+    // vehicle and the copy end up competing for the same band of pixels.
     if (textZone) {
-      if (progress <= 0.30) {
-        const t = easeOut(progress / 0.30);
-        textZone.style.transform = `translateY(${(-12 * t).toFixed(2)}px)`;
-        textZone.style.opacity = (1 - 0.15 * t).toFixed(3);
-      } else {
-        textZone.style.transform = 'translateY(-12px)';
-        textZone.style.opacity = '0.85';
-      }
+      const fade = easeOut(clamp01((progress - 0.04) / 0.26));
+      textZone.style.transform = `translateY(${(-26 * fade).toFixed(2)}px)`;
+      textZone.style.opacity = (1 - fade).toFixed(3);
+      textZone.style.pointerEvents = fade > 0.9 ? 'none' : '';
     }
 
     // --- Beat 3: the CTA resolves into place ---

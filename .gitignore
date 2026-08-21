@@ -21,6 +21,10 @@ scratch/
 # ---------------------------------------------------------------------------
 .claude/settings.local.json
 
+# Skill symlinks pointing into the gitignored .agents/ tree — committing them
+# would leave broken links in a fresh clone. Reproducible from skills-lock.json.
+.claude/skills/
+
 # ---------------------------------------------------------------------------
 # Unused asset set (1.4 MB / 25 frames) from an abandoned logo-reveal
 # experiment — nothing in index.html, style.css or app.js references it.

@@ -98,32 +98,35 @@
   --status-out-border: #FECACA;
   --status-out-dot: #EF4444;
 
-  /* --- SEMANTIC: hero video scrim ---
-     Opacity stops are derived from measured frame luminance; see the
-     .hero-scrim rule for the full contrast working. Light mode uses the
-     minimum that still clears WCAG AA, so the footage stays vivid. */
-  --hero-base: #14161F;                /* letterbox / pre-decode backdrop */
-  --hero-scrim-0: 0.74;                /* top edge                        */
-  --hero-scrim-1: 0.56;                /* through tagline + subtitle      */
-  --hero-scrim-2: 0.16;                /* clears for the subject's face   */
-  --hero-scrim-3: 0.14;
-  --hero-scrim-4: 0.50;                /* CTA band                        */
-  --hero-scrim-5: 0.74;                /* bottom edge                     */
+  /* --- SEMANTIC: hero stage + scrim ---
+     The hero subject (child + jeep) is a transparent WebP sequence, so the
+     backdrop is entirely CSS and re-themes for free. The radial glow gives the
+     glossy BLACK jeep a lighter pool to read against — without it the vehicle
+     silhouette dissolves into the page colour in dark mode. */
+  --hero-stage-glow: #FFFFFF;          /* centre of the radial stage       */
+  --hero-stage-base: #E8E2D4;          /* outer edge of the stage          */
+  --hero-ground: rgba(27, 42, 94, 0.16); /* contact shadow under the tyres */
 
-  /* Hero copy always sits on the dark scrim, so these are light-on-dark in
-     BOTH themes. */
-  --hero-text-body: rgba(255, 255, 255, 0.95);
-  --hero-text-muted: rgba(255, 255, 255, 0.84);
+  /* Copy sits on the stage, not on raw video, so the scrim is far lighter
+     than the previous photographic hero needed. */
+  --hero-scrim-top: rgba(27, 42, 94, 0.30);
+  --hero-scrim-bottom: rgba(27, 42, 94, 0.34);
+  --hero-text-strong: var(--color-navy);
+  --hero-text-body: var(--color-ink);
+  --hero-text-muted: var(--color-ink-muted);
 
   /* --- SEMANTIC: tagline emblem --- */
-  --tagline-ink: #FFFFFF;   /* always light: sits on the hero video scrim */
+  --tagline-ink: var(--hero-text-strong);
   --tagline-accent-pop: var(--color-coral);
   --tagline-accent-warm: var(--color-yellow);
 
   /* --- Typography --- */
   --font-display: 'Fredoka', cursive, system-ui, -apple-system, sans-serif;
   --font-script: 'Caveat', cursive, system-ui, -apple-system, sans-serif;
-  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  /* Figtree: humanist geometric sans with open apertures and softly rounded
+     terminals — echoes Fredoka's roundness without competing with it, and stays
+     legible at spec-chip sizes. Replaces Inter, which reads as a default. */
+  --font-body: 'Figtree', 'Segoe UI', system-ui, -apple-system, sans-serif;
 
   --radius-sm: 8px;
   --radius-md: 14px;
@@ -212,15 +215,16 @@
 
     /* Dark mode leans the scrim heavier: less glare from a bright video
        against an otherwise dark page, and a moodier hero. */
-    --hero-scrim-0: 0.84;
-    --hero-scrim-1: 0.68;
-    --hero-scrim-2: 0.30;
-    --hero-scrim-3: 0.28;
-    --hero-scrim-4: 0.62;
-    --hero-scrim-5: 0.86;
+    --hero-stage-glow: #262E4A;
+    --hero-stage-base: #0F111A;
+    --hero-ground: rgba(0, 0, 0, 0.55);
+    --hero-scrim-top: rgba(10, 12, 18, 0.34);
+    --hero-scrim-bottom: rgba(10, 12, 18, 0.38);
+    --hero-text-strong: #F2F4FA;
+    --hero-text-body: #E2E5EF;
+    --hero-text-muted: #A9B0C4;
 
-    --tagline-ink: #F0F2F8;
-
+  
     /* Shadows read as depth pools, not gray smudges, on a dark ground */
     --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.40);
     --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.48);
@@ -285,14 +289,15 @@
 
   /* Dark mode leans the scrim heavier: less glare from a bright video
      against an otherwise dark page, and a moodier hero. */
-  --hero-scrim-0: 0.84;
-  --hero-scrim-1: 0.68;
-  --hero-scrim-2: 0.30;
-  --hero-scrim-3: 0.28;
-  --hero-scrim-4: 0.62;
-  --hero-scrim-5: 0.86;
+  --hero-stage-glow: #262E4A;
+  --hero-stage-base: #0F111A;
+  --hero-ground: rgba(0, 0, 0, 0.55);
+  --hero-scrim-top: rgba(10, 12, 18, 0.34);
+  --hero-scrim-bottom: rgba(10, 12, 18, 0.38);
+  --hero-text-strong: #F2F4FA;
+  --hero-text-body: #E2E5EF;
+  --hero-text-muted: #A9B0C4;
 
-  --tagline-ink: #F0F2F8;
 
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.40);
   --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.48);
@@ -561,7 +566,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   position: relative;
   width: 100%;
   height: 320vh;
-  background: var(--hero-base);
+  background: var(--hero-stage-base);
 }
 
 .hero-sticky-viewport {
@@ -577,7 +582,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: var(--hero-base);
+  background: var(--hero-stage-base);
 }
 
 /* --- Frame canvas -------------------------------------------------------- */
@@ -586,7 +591,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   inset: 0;
   width: 100%;
   height: 100%;
-  z-index: 1;
+  z-index: 2;
   display: block;
   opacity: 0;
   transition: opacity 0.45s ease-out;
@@ -625,22 +630,44 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 }
 
 /* --------------------------------------------------------------------------
+   HERO STAGE
+
+   The subject is a transparent WebP sequence, so everything behind it is CSS.
+   A radial glow sits under the vehicle: in light mode it reads as a soft studio
+   sweep, and in dark mode it is what stops a glossy BLACK jeep from dissolving
+   into a near-black page. The ellipse beneath adds ground contact so the
+   vehicle sits on something instead of floating.
+   -------------------------------------------------------------------------- */
+.hero-stage {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    radial-gradient(ellipse 62% 58% at 50% 62%,
+      var(--hero-stage-glow) 0%,
+      var(--hero-stage-base) 78%);
+}
+
+.hero-stage::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 20%;
+  width: min(56vw, 620px);
+  height: 42px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: var(--hero-ground);
+  filter: blur(26px);
+}
+
+/* --------------------------------------------------------------------------
    READABILITY SCRIM
 
-   Sized from measurement, not guesswork. Across all 121 source frames the
-   text bands average luma ~122/255 and local highlights (white bodysuit,
-   backlit hair, sunlit pavement) reach ~255 — so the raw footage cannot
-   carry white text at any scroll position.
-
-   Against a blown 255 highlight, a black overlay at opacity a leaves
-   255*(1-a). WCAG AA needs the backdrop at or below ~119 for body text
-   (4.5:1 vs white) and ~149 for large display text (3:1 vs white):
-       body  -> a >= 0.53
-       large -> a >= 0.42
-
-   The stops below hold >= 0.56 through the whole text block (tagline,
-   subtitle, quote) and >= 0.48 through the CTA band, while leaving the
-   middle of the frame — where the subject's face is — largely clear.
+   Much lighter than the previous photographic hero required: the backdrop is
+   now a controlled brand colour rather than unpredictable video luminance, so
+   the scrim only has to separate the copy from the stage, not fight blown
+   highlights. Sits above the subject so the vehicle reads behind the text.
    -------------------------------------------------------------------------- */
 .hero-scrim {
   position: absolute;
@@ -649,12 +676,10 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   pointer-events: none;
   background: linear-gradient(
     to bottom,
-    rgba(0, 0, 0, var(--hero-scrim-0)) 0%,
-    rgba(0, 0, 0, var(--hero-scrim-1)) 42%,
-    rgba(0, 0, 0, var(--hero-scrim-2)) 54%,
-    rgba(0, 0, 0, var(--hero-scrim-3)) 66%,
-    rgba(0, 0, 0, var(--hero-scrim-4)) 82%,
-    rgba(0, 0, 0, var(--hero-scrim-5)) 100%
+    var(--hero-scrim-top) 0%,
+    transparent 34%,
+    transparent 62%,
+    var(--hero-scrim-bottom) 100%
   );
 }
 
@@ -705,7 +730,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   overflow: visible;
   user-select: none;
   /* Lifts the wordmark off the busiest frames without a hard outline. */
-  filter: drop-shadow(0 2px 10px rgba(0, 0, 0, 0.55));
+  filter: drop-shadow(0 2px 8px var(--hero-scrim-top));
 }
 
 .hero-tagline-text {
@@ -739,7 +764,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   max-width: 600px;
   margin: 0 auto 6px;
   font-weight: 500;
-  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.6);
+  text-shadow: 0 1px 10px var(--hero-scrim-bottom);
 }
 
 .hero-warm-note {
@@ -747,7 +772,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   color: var(--hero-text-muted);
   font-weight: 500;
   font-style: italic;
-  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.6);
+  text-shadow: 0 1px 10px var(--hero-scrim-bottom);
 }
 
 /* Beat 3 Action Box */
@@ -815,7 +840,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   font-size: 0.82rem;
   font-weight: 500;
   color: var(--hero-text-muted);
-  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.6);
+  text-shadow: 0 1px 10px var(--hero-scrim-bottom);
 }
 
 .scroll-mouse-icon {
@@ -859,7 +884,8 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.4);
+  background: var(--hero-text-muted);
+  opacity: 0.45;
   transition: height var(--transition-normal), background-color var(--transition-normal), border-radius var(--transition-normal);
 }
 
