@@ -648,17 +648,27 @@ function initScrollHero() {
   }
 
   // --- Draw one frame, fitted to the hero's subject stage ---
-  // NOT object-fit:cover. Cover scales a 16:9 plate to fill the viewport, which
-  // blows the child + jeep up until they swallow the tagline and the CTA.
+  // NOT object-fit:cover. Cover scales the 16:9 plate to fill the viewport,
+  // which blows the child + jeep up until they swallow the tagline and CTA.
   // Instead the subject is fitted to a share of the viewport and anchored above
-  // the CTA lane, so the composition holds at any window size.
-  // The camera pushes in until the vehicle exceeds the source frame, so the
-  // late frames are edge-to-edge by construction. Rather than fight that, the
-  // subject is allowed to grow and bleed off the viewport — which IS the push-in
-  // — while the headline fades out and hands the frame over to it.
-  const SUBJECT_WIDTH = 0.94;    // of viewport width
-  const SUBJECT_MAX_H = 0.66;    // of viewport height
-  const SUBJECT_BOTTOM = 0.09;   // gap from viewport bottom to the tyres
+  // the CTA lane. Those shares live in CSS (--hero-subject-*) so they can be
+  // tuned per breakpoint: one set of numbers cannot serve both a 1440px desktop
+  // and a 390px phone, where the plate is width-bound and the vehicle came out
+  // small with the CTA across its middle.
+  const viewport = document.getElementById('heroViewport');
+
+  function subjectMetrics() {
+    const cs = getComputedStyle(viewport || canvas);
+    const num = (name, fallback) => {
+      const v = parseFloat(cs.getPropertyValue(name));
+      return Number.isFinite(v) ? v : fallback;
+    };
+    return {
+      width: num('--hero-subject-width', 0.94),
+      maxH: num('--hero-subject-max-h', 0.66),
+      bottom: num('--hero-subject-bottom', 0.09)
+    };
+  }
 
   function drawFrame(img) {
     if (!img || !img.complete || img.naturalWidth === 0) return;
@@ -667,16 +677,33 @@ function initScrollHero() {
     const ch = canvas.clientHeight;
     if (!cw || !ch) return;
 
-    let dw = cw * SUBJECT_WIDTH;
+    const m = subjectMetrics();
+    let dw = cw * m.width;
     let dh = dw * (img.naturalHeight / img.naturalWidth);
-    const maxH = ch * SUBJECT_MAX_H;
+    const maxH = ch * m.maxH;
     if (dh > maxH) { dh = maxH; dw = dh * (img.naturalWidth / img.naturalHeight); }
 
     const dx = (cw - dw) / 2;
-    const dy = ch - ch * SUBJECT_BOTTOM - dh;
+    const dy = ch - ch * m.bottom - dh;
 
     ctx.clearRect(0, 0, cw, ch);
     ctx.drawImage(img, dx, dy, dw, dh);
+
+    // Soften the plate's bottom edge. The camera push-in runs the vehicle past
+    // the source frame in the late frames, so the plate ends in a straight cut
+    // through the tyres. On desktop that bleeds off-viewport, but on a phone it
+    // lands mid-screen as a visible hard line. A short destination-out fade
+    // makes it read as the vehicle settling into the stage instead.
+    const fadeH = Math.min(32, dh * 0.09);
+    if (fadeH > 1) {
+      const grad = ctx.createLinearGradient(0, dy + dh - fadeH, 0, dy + dh);
+      grad.addColorStop(0, 'rgba(0,0,0,0)');
+      grad.addColorStop(1, 'rgba(0,0,0,1)');
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.fillStyle = grad;
+      ctx.fillRect(dx, dy + dh - fadeH, dw, fadeH);
+      ctx.globalCompositeOperation = 'source-over';
+    }
 
     if (!firstPaintDone) {
       firstPaintDone = true;

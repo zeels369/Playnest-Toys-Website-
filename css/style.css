@@ -611,6 +611,13 @@ section[id],
 }
 
 .hero-sticky-viewport {
+  /* Where the scroll-scrubbed subject sits. Read by drawFrame() in js/app.js.
+     --hero-subject-width may exceed 1 so the plate's empty edges bleed off
+     screen and the vehicle itself reads larger. */
+  --hero-subject-width: 0.94;
+  --hero-subject-max-h: 0.66;
+  --hero-subject-bottom: 0.09;
+
   position: sticky;
   /* Sits directly below the sticky header rather than behind it, so the
      content lane maths (and the CTA / floating-pill clearance) stay honest. */
@@ -2604,5 +2611,40 @@ section[id],
   .theme-toggle {
     padding: 6px;
     margin: -6px;
+  }
+}
+
+/* ==========================================================================
+   HERO SUBJECT — SMALL SCREENS
+
+   On a phone the plate is width-bound, so the vehicle rendered small AND the
+   CTA lane landed across its middle. Widening past the viewport (the empty
+   plate edges bleed off screen) and lifting the anchor fixes both.
+   ========================================================================== */
+@media (max-width: 700px) {
+  .hero-sticky-viewport {
+    --hero-subject-width: 1.32;
+    --hero-subject-max-h: 0.46;
+    --hero-subject-bottom: 0.30;
+  }
+}
+
+/* Tablets fell through to the desktop values, where the CTA lane again landed
+   across the vehicle. */
+@media (min-width: 701px) and (max-width: 1024px) {
+  .hero-sticky-viewport {
+    --hero-subject-width: 0.92;
+    --hero-subject-max-h: 0.50;
+    --hero-subject-bottom: 0.25;
+  }
+}
+
+@media (max-width: 700px) and (orientation: landscape) {
+  /* Landscape phones are very short; give the subject less height and keep the
+     copy from colliding with it. */
+  .hero-sticky-viewport {
+    --hero-subject-width: 0.80;
+    --hero-subject-max-h: 0.40;
+    --hero-subject-bottom: 0.34;
   }
 }
