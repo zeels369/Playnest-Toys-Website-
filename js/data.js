@@ -12,6 +12,10 @@
  * 1. ✅ DONE — `PLAYNEST_CONFIG.whatsappNumber` is set to the live business number.
  * 2. Replace the sample items in `PLAYNEST_PRODUCTS` with your approved product inventory,
  *    final retail prices, and approved specs.
+ *    ⚠️ ageRange and weightCapacity below are ILLUSTRATIVE ONLY. They were set to
+ *    be internally consistent with the 6–10 positioning so the page does not
+ *    contradict itself — they are NOT supplier figures. Weight limits in
+ *    particular are a child-safety claim and must come from the manufacturer.
  * 3. Place actual product photos into `/images/products/` and reference their file names here.
  * ============================================================================
  */
@@ -118,11 +122,10 @@ const PLAYNEST_PRODUCTS = [
     mrp: 11200,
     sku: "DL-1000",
     image: "images/products/car-ferrari-f8.svg",
-    badge: "Popular Choice",
     inStock: true,
-    ageRange: "2–6 Yrs",
+    ageRange: "6–9 Yrs",
     battery: "12V Rechargeable",
-    weightCapacity: "40 kg",
+    weightCapacity: "45 kg",
     motors: "2x2 Dual Motor",
     features: [
       "Openable Butterfly Doors",
@@ -141,9 +144,9 @@ const PLAYNEST_PRODUCTS = [
     mrp: 16500,
     sku: "RUBI-4X4",
     image: "images/products/jeep-rubicon-4x4.svg",
-    badge: "Top Seller",
+    badge: "Biggest 4×4",
     inStock: true,
-    ageRange: "2–12 Yrs",
+    ageRange: "6–10 Yrs",
     battery: "12V Heavy-Duty",
     weightCapacity: "60 kg",
     motors: "4x4 Quad Motors",
@@ -164,20 +167,19 @@ const PLAYNEST_PRODUCTS = [
     mrp: 15000,
     sku: "RE-500",
     image: "images/products/bike-royal-enfield.svg",
-    badge: "Parent Favorite",
     inStock: true,
-    ageRange: "2–7 Yrs",
+    ageRange: "6–10 Yrs",
     battery: "12V Rechargeable",
     weightCapacity: "50 kg",
     motors: "High Torque Single Motor",
     features: [
       "Realistic Hand Accelerator Throttle",
       "Foot Brake for Safety",
-      "Removable Auxiliary Training Wheels",
+      "Removable Stabiliser Wheels",
       "Vintage Headlight & Engine Sound",
       "Leather-Look Ergonomic Seat"
     ],
-    description: "Iconic retro motorbike styling tailored for kids. Comes with sturdy side stabilizer wheels for early learners and smooth twist-throttle hand race control."
+    description: "Iconic retro motorbike styling built for confident young riders. Twist-throttle hand control and a foot brake, with removable stabilisers for the first few rides."
   },
   {
     id: "pn-scooter-01",
@@ -187,20 +189,19 @@ const PLAYNEST_PRODUCTS = [
     mrp: 7000,
     sku: "VSP-42",
     image: "images/products/scooter-vespa-red.svg",
-    badge: "Best for Toddlers",
     inStock: true,
-    ageRange: "2–8 Yrs",
+    ageRange: "6–9 Yrs",
     battery: "12V Rechargeable",
     weightCapacity: "50 kg",
     motors: "Smooth Dual Drive",
     features: [
       "Classic Retro Curved Body",
-      "Dual Training Balance Wheels",
+      "Removable Stabiliser Wheels",
       "Hand Throttle & Foot Brake",
-      "Built-in Rhymes & Horn",
+      "Bluetooth Speaker & Horn",
       "Low Step-Through Comfort Deck"
     ],
-    description: "Charming European styling with gentle acceleration curve ideal for toddlers. Safe low center of gravity with built-in music and bright chrome-look trims."
+    description: "Charming European styling with a smooth, progressive throttle. Low centre of gravity for stability at speed, Bluetooth audio and bright chrome-look trims."
   },
   {
     id: "pn-car-02",
@@ -210,11 +211,10 @@ const PLAYNEST_PRODUCTS = [
     mrp: 8000,
     sku: "BMW-GT",
     image: "images/products/car-bmw-gt.svg",
-    badge: "Value Pick",
     inStock: true,
-    ageRange: "2–5 Yrs",
+    ageRange: "6–8 Yrs",
     battery: "6V / 12V Compatible",
-    weightCapacity: "30 kg",
+    weightCapacity: "40 kg",
     motors: "2x2 Dual Motor",
     features: [
       "Kid-Friendly Steering Wheel",
@@ -233,11 +233,11 @@ const PLAYNEST_PRODUCTS = [
     mrp: 10500,
     sku: "RR-018",
     image: "images/products/bike-bmw-rr.svg",
-    badge: "Special Effects",
+    badge: "Smoke Effect",
     inStock: true,
-    ageRange: "2–6 Yrs",
+    ageRange: "7–10 Yrs",
     battery: "12V Fast-Charge",
-    weightCapacity: "40 kg",
+    weightCapacity: "45 kg",
     motors: "High-RPM Dual Motor",
     features: [
       "Real Water Mist Exhaust Smoke Effect",
@@ -256,11 +256,10 @@ const PLAYNEST_PRODUCTS = [
     mrp: 9500,
     sku: "DEF-1555",
     image: "images/products/jeep-defender.svg",
-    badge: "Tough Build",
     inStock: true,
-    ageRange: "2–5 Yrs",
+    ageRange: "6–9 Yrs",
     battery: "12V Long-Life",
-    weightCapacity: "35 kg",
+    weightCapacity: "45 kg",
     motors: "4x4 Multi-Wheel Drive",
     features: [
       "Roof LED Light Bar",
@@ -279,11 +278,10 @@ const PLAYNEST_PRODUCTS = [
     mrp: 6500,
     sku: "POL-911",
     image: "images/products/jeep-police-888.svg",
-    badge: "Kids Favorite",
     inStock: true,
-    ageRange: "2–5 Yrs",
+    ageRange: "6–8 Yrs",
     battery: "6V / 12V Battery",
-    weightCapacity: "30 kg",
+    weightCapacity: "40 kg",
     motors: "4x4 Motor Wheels",
     features: [
       "Flashing Red & Blue Police Sirens",
@@ -302,11 +300,11 @@ const PLAYNEST_PRODUCTS = [
     mrp: 10400,
     sku: "VSP-D41",
     image: "images/products/scooter-vespa-double.svg",
-    badge: "2-Seater",
+    badge: "Twin Seat",
     inStock: true,
-    ageRange: "2–8 Yrs",
+    ageRange: "6–10 Yrs",
     battery: "12V High-Capacity",
-    weightCapacity: "50 kg",
+    weightCapacity: "55 kg",
     motors: "Dual Rear Drive",
     features: [
       "Twin Tandem Cushioned Seats",
@@ -325,9 +323,8 @@ const PLAYNEST_PRODUCTS = [
     mrp: 16500,
     sku: "MB-VIN15",
     image: "images/products/car-mercedes-vintage.svg",
-    badge: "Collector Edition",
     inStock: false, // Sample demo of out-of-stock state for client toggle
-    ageRange: "2–7 Yrs",
+    ageRange: "6–10 Yrs",
     battery: "12V Rechargeable",
     weightCapacity: "50 kg",
     motors: "2x2 High-Efficiency",
@@ -348,11 +345,11 @@ const PLAYNEST_PRODUCTS = [
     mrp: 5000,
     sku: "HRLY-DIG",
     image: "images/products/bike-harley-diggi.svg",
-    badge: "Budget Friendly",
+    badge: "Best Value",
     inStock: true,
-    ageRange: "2–4 Yrs",
+    ageRange: "6–8 Yrs",
     battery: "6V Rechargeable",
-    weightCapacity: "30 kg",
+    weightCapacity: "40 kg",
     motors: "Single Rear Drive",
     features: [
       "High Ape-Hanger Handlebars",
@@ -371,9 +368,8 @@ const PLAYNEST_PRODUCTS = [
     mrp: 14000,
     sku: "POL-2488",
     image: "images/products/jeep-polaris-utv.svg",
-    badge: "Off-Road Ready",
     inStock: true,
-    ageRange: "2–11 Yrs",
+    ageRange: "7–10 Yrs",
     battery: "12V High-Output",
     weightCapacity: "60 kg",
     motors: "4x4 All-Wheel Drive",
