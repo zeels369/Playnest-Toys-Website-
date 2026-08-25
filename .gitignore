@@ -21,6 +21,11 @@ scratch/
 # ---------------------------------------------------------------------------
 .claude/settings.local.json
 
+# MCP servers are registered at LOCAL scope (~/.claude.json) so they stay on
+# this machine rather than travelling with the repo. Ignored so a stray
+# .mcp.json is never committed by accident.
+.mcp.json
+
 # Skill symlinks pointing into the gitignored .agents/ tree — committing them
 # would leave broken links in a fresh clone. Reproducible from skills-lock.json.
 .claude/skills/
