@@ -9,7 +9,7 @@
 // In-Memory Cart State (Array of { productId, quantity })
 let cart = [];
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   // 0. Wire up the dark mode toggle (theme itself is already applied by the
   //    inline bootstrap in index.html, before first paint)
   initThemeToggle();
@@ -17,10 +17,13 @@ document.addEventListener('DOMContentLoaded', () => {
   // 1. Initialize Header, Footer, and Floating WhatsApp Action Links
   initWhatsAppLinks();
 
-  // 2. Initialize Category Counts
-  initCategoryCounts();
+  // 3. Fetch the catalogue from the published sheet, THEN render.
+  //    Everything below depends on PLAYNEST_PRODUCTS being populated.
+  const { products, source } = await loadProducts();
+  console.info('[playnest] loaded ' + products.length + ' products from ' + (source || 'no source'));
+  if (!products.length) showCatalogUnavailable();
 
-  // 3. Initialize Catalog Filter & Grid
+  initCategoryCounts();
   initCatalog();
 
   // 4. Initialize Scroll-Driven Hero Sequence
@@ -291,9 +294,10 @@ function renderProducts() {
     const matchesSearch = !searchQuery || 
       p.name.toLowerCase().includes(searchQuery) ||
       p.category.toLowerCase().includes(searchQuery) ||
-      p.ageRange.toLowerCase().includes(searchQuery) ||
-      p.motors.toLowerCase().includes(searchQuery) ||
-      (p.features && p.features.some(f => f.toLowerCase().includes(searchQuery)));
+      (p.ageRange || '').toLowerCase().includes(searchQuery) ||
+      (p.braking || '').toLowerCase().includes(searchQuery) ||
+      (p.battery || '').toLowerCase().includes(searchQuery) ||
+      (p.badge || '').toLowerCase().includes(searchQuery);
     return matchesCat && matchesSearch;
   });
 
@@ -331,7 +335,7 @@ function renderProducts() {
     const isAvailable = p.inStock !== false;
 
     return `
-      <article class="product-card" data-id="${p.id}" style="--card-index:${i}">
+      <article class="product-card${!isAvailable ? ' product-card--oos' : ''}" data-id="${p.id}" style="--card-index:${i}">
         
         <!-- Media Container -->
         <div class="card-media" onclick="openProductModal('${p.id}')" role="button" tabindex="0" aria-label="View specifications for ${escapeHtml(p.name)}">
@@ -355,30 +359,33 @@ function renderProducts() {
             </span>
             <span class="spec-chip" title="Battery Power">
               <svg class="spec-chip-icon" viewBox="0 0 24 24"><path d="M11 15h2v2h-2zm0-8h2v6h-2zm.99-5C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/></svg>
-              ${p.battery.split(' ')[0]}
+              ${escapeHtml(p.battery)}
             </span>
             <span class="spec-chip" title="Weight Capacity">
               <svg class="spec-chip-icon" viewBox="0 0 24 24"><path d="M19 13h-6V7h-2v6H5v2h6v6h2v-6h6z"/></svg>
-              ${p.weightCapacity}
+              ${escapeHtml(p.weightCapacity)}
             </span>
           </div>
 
-          <!-- Price -->
+          <!-- Price: a single clean figure. No MRP strikethrough — the sheet
+               carries one real price per product and inventing a "was" figure
+               would be a fabricated discount claim. -->
           <div class="card-price-row">
             <span class="card-price">₹${p.price.toLocaleString('en-IN')}</span>
-            ${p.mrp ? `<span class="card-mrp">₹${p.mrp.toLocaleString('en-IN')}</span>` : ''}
           </div>
 
-          <!-- Action Button: Add to Cart or Out of Stock -->
+          <!-- Out of stock keeps the product visible but swaps the buy action
+               for a restock request, so demand is still captured. -->
           ${isAvailable ? `
             <button onclick="addToCart('${p.id}')" class="btn-add-cart" aria-label="Add ${escapeHtml(p.name)} to cart">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
               <span>Add to Cart</span>
             </button>
           ` : `
-            <button class="btn-out-of-stock" disabled aria-disabled="true">
-              <span>Out of Stock</span>
-            </button>
+            <a href="${PLAYNEST_CONFIG.buildNotifyMeUrl(p.name)}" target="_blank" rel="noopener noreferrer" class="btn-notify-me" aria-label="Ask to be notified when ${escapeHtml(p.name)} is back in stock">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+              <span>Notify Me</span>
+            </a>
           `}
         </div>
       </article>
@@ -918,11 +925,8 @@ window.openProductModal = function(productId) {
   const ageEl = document.getElementById('modalSpecAge');
   const weightEl = document.getElementById('modalSpecWeight');
   const batteryEl = document.getElementById('modalSpecBattery');
-  const motorsEl = document.getElementById('modalSpecMotors');
-  const skuEl = document.getElementById('modalSpecSku');
+  const brakingEl = document.getElementById('modalSpecBraking');
   const featuresEl = document.getElementById('modalFeatures');
-  const addCartBtn = document.getElementById('modalAddCartBtn');
-  const waBtn = document.getElementById('modalWaBtn');
 
   if (imgEl) {
     imgEl.src = product.image;
@@ -931,28 +935,24 @@ window.openProductModal = function(productId) {
   if (catEl) catEl.textContent = product.category;
   if (titleEl) titleEl.textContent = product.name;
   if (priceEl) priceEl.textContent = `₹${product.price.toLocaleString('en-IN')}`;
-  if (mrpEl) mrpEl.textContent = product.mrp ? `₹${product.mrp.toLocaleString('en-IN')}` : '';
-  if (descEl) descEl.textContent = product.description || '';
-  if (ageEl) ageEl.textContent = product.ageRange;
-  if (weightEl) weightEl.textContent = product.weightCapacity;
-  if (batteryEl) batteryEl.textContent = product.battery;
-  if (motorsEl) motorsEl.textContent = product.motors;
-  if (skuEl) skuEl.textContent = product.sku || 'N/A';
+  // No MRP in the sheet — one real price per product, so the strikethrough is
+  // hidden rather than filled with an invented "was" figure.
+  if (mrpEl) { mrpEl.textContent = ''; mrpEl.style.display = 'none'; }
+  if (descEl) { descEl.textContent = ''; descEl.style.display = 'none'; }
+  if (ageEl) ageEl.textContent = product.ageRange || '—';
+  if (weightEl) weightEl.textContent = product.weightCapacity || '—';
+  if (batteryEl) batteryEl.textContent = product.battery || '—';
+  if (brakingEl) brakingEl.textContent = product.braking || '—';
 
-  if (featuresEl) {
-    featuresEl.innerHTML = (product.features || []).map(f => `
-      <li class="modal-feature-item">
-        <span class="feature-check">✓</span>
-        <span>${escapeHtml(f)}</span>
-      </li>
-    `).join('');
-  }
+  // The sheet carries no per-product feature list, so the block stays empty
+  // rather than showing an orphaned heading.
+  if (featuresEl) featuresEl.innerHTML = '';
 
   const stockBadgeEl = document.getElementById('modalStockBadge');
   const actionWrapperEl = document.getElementById('modalActionWrapper');
   const secondaryLinkEl = document.getElementById('modalSecondaryLink');
 
-  const waUrl = PLAYNEST_CONFIG.buildWhatsAppUrl(product.name, product.price, product.sku);
+  const waUrl = PLAYNEST_CONFIG.buildWhatsAppUrl(product.name, product.price);
 
   if (product.inStock !== false) {
     // IN STOCK STATE: Subtle stock pill + Add to Cart primary button + WhatsApp question link
@@ -987,11 +987,11 @@ window.openProductModal = function(productId) {
 
     if (actionWrapperEl) {
       actionWrapperEl.innerHTML = `
-        <a href="${waUrl}" target="_blank" rel="noopener noreferrer" class="modal-primary-btn btn-wa-inquire" aria-label="Inquire about ${escapeHtml(product.name)} on WhatsApp">
+        <a href="${PLAYNEST_CONFIG.buildNotifyMeUrl(product.name)}" target="_blank" rel="noopener noreferrer" class="modal-primary-btn btn-wa-inquire" aria-label="Ask to be notified when ${escapeHtml(product.name)} is back in stock">
           <svg class="modal-btn-icon" viewBox="0 0 24 24" width="19" height="19" fill="currentColor">
             <path d="M12.04 2c-5.5 0-9.98 4.48-9.98 9.98 0 1.76.46 3.47 1.33 4.98L2 22l5.25-1.38c1.47.8 3.12 1.23 4.79 1.23 5.5 0 9.98-4.48 9.98-9.98 0-2.67-1.04-5.18-2.93-7.07C17.2 2.91 14.7 2 12.04 2zm0 1.83c2.18 0 4.23.85 5.77 2.39 1.54 1.54 2.39 3.59 2.39 5.77 0 4.5-3.66 8.17-8.16 8.17-1.42 0-2.81-.37-4.04-1.08l-.29-.17-3 .79.8-2.93-.18-.29c-.78-1.24-1.19-2.67-1.19-4.49 0-4.5 3.66-8.16 8.16-8.16zm-3.52 4.09c-.19 0-.44.07-.67.33-.23.26-.88.86-.88 2.1 0 1.24.9 2.43 1.03 2.6.13.17 1.75 2.77 4.3 3.83.61.25 1.08.4 1.45.52.61.19 1.17.17 1.61.1.49-.07 1.52-.62 1.73-1.22.21-.6.21-1.11.15-1.22-.06-.11-.23-.17-.49-.3-.26-.13-1.52-.75-1.75-.83-.23-.09-.4-.13-.58.13-.17.26-.66.83-.81 1-.15.17-.3.19-.56.06-.26-.13-1.08-.4-2.06-1.27-.76-.68-1.28-1.52-1.43-1.78-.15-.26-.02-.4.11-.52.12-.12.26-.3.39-.45.13-.15.17-.26.26-.43.08-.17.04-.32-.02-.45-.06-.13-.58-1.39-.79-1.9-.21-.5-.42-.43-.58-.44l-.49-.01z"/>
           </svg>
-          <span>Ask Availability on WhatsApp</span>
+          <span>Notify Me When Available</span>
         </a>
       `;
     }
@@ -1070,4 +1070,27 @@ function initScrollReveals() {
   }, { rootMargin: '0px 0px -12% 0px', threshold: 0.1 });
 
   targets.forEach((el) => io.observe(el));
+}
+
+/* ==========================================================================
+   CATALOGUE UNAVAILABLE
+   Shown only when BOTH the published sheet and the bundled fallback fail.
+   An empty grid with no explanation reads as "this shop has no products",
+   which is worse than admitting the list could not be reached.
+   ========================================================================== */
+function showCatalogUnavailable() {
+  const grid = document.getElementById('productGrid');
+  if (!grid) return;
+  grid.innerHTML = `
+    <div class="catalog-empty-state">
+      <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M21 12a9 9 0 1 1-6.219-8.56"></path>
+      </svg>
+      <h3 class="empty-state-title">Catalogue temporarily unavailable</h3>
+      <p class="empty-state-text">We could not load our product list just now. Please refresh, or message us on WhatsApp and we will help straight away.</p>
+      <a href="${PLAYNEST_CONFIG.buildGeneralInquiryUrl()}" target="_blank" rel="noopener noreferrer" class="btn-primary btn-primary--wa btn-primary--sm">Chat on WhatsApp</a>
+    </div>
+  `;
+  const countEl = document.getElementById('catalogCount');
+  if (countEl) countEl.textContent = 'Unavailable';
 }

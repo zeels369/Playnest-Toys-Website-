@@ -1,0 +1,14 @@
+Id,Name,Category,Price,AgeRange,WeightCapacity,Battery,Braking,ImageURL,Badge,InStock
+pn-yamaha-mini,Yamaha Mini,bikes,2500,2–5 yrs,30Kg Max,6V,Foot Race,images/products/yamaha-mini.jpg,,TRUE
+pn-re-small,Royal Enfield (Small),bikes,6200,2–6 yrs,40Kg Max,12V,Hand Race & Foot Break,images/products/royal-enfield-small.jpg,,TRUE
+pn-vespa-scooty,Vespa Kids Scooty,scooters,4300,2–8 yrs,50Kg Max,12V,Hand Race & Foot Break,images/products/vespa-kids-scooty.jpg,,TRUE
+pn-s800,S 800,bikes,3300,2–4 yrs,30Kg Max,6V,Foot Race,images/products/s-800.jpg,,TRUE
+pn-bmw-rr018,BMW RR 018 (with Smoke),bikes,8000,2–6 yrs,40Kg Max,12V,Hand Race & Foot Race,images/products/bmw-rr-018.jpg,Smoke Effect,TRUE
+pn-r30-painted,R 30 Painted,bikes,6300,2–6 yrs,50Kg Max,12V,Hand Race & Foot Break,images/products/r-30-painted.jpg,,TRUE
+pn-r3-jkw,R3 JKW (LED Lights),bikes,6500,2–6 yrs,40Kg Max,12V,Hand Race & Foot Race,images/products/r3-jkw.jpg,,TRUE
+pn-harley-diggi,Harley Diggi,bikes,2800,2–4 yrs,30Kg Max,6V,Foot Race,images/products/harley-diggi.jpg,,TRUE
+pn-1600-kab,1600 KAB,bikes,5800,2–6 yrs,50Kg Max,6V,Hand Race & Foot Break,images/products/1600-kab.jpg,,TRUE
+pn-harley-6622,Harley 6622,bikes,2300,2–4 yrs,30Kg Max,6V,Foot Race,images/products/harley-6622.jpg,Best Value,TRUE
+pn-vespa-double,Vespa (Double Seater),scooters,6000,2–8 yrs,50Kg Max,12V,Hand Race & Foot Break,images/products/vespa-double-seater.jpg,Twin Seat,TRUE
+pn-re-olive,Royal Enfield (Olive),bikes,8000,2–7 yrs,50Kg Max,12V,Hand Race & Foot Break,images/products/royal-enfield-olive.jpg,Premium,TRUE
+pn-r1-painted,R1 Painted,bikes,6100,2–6 yrs,50Kg Max,12V,Hand Race & Foot Break,images/products/r1-painted.jpg,,TRUE

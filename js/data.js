@@ -1,22 +1,26 @@
 /**
  * ============================================================================
- * PLAYNEST TOYS — CONFIGURATION & PRODUCT DATA CATALOG
+ * PLAYNEST TOYS — CONFIGURATION & PRODUCT DATA SOURCE
  * ============================================================================
- * 
- * ⚠️ DEVELOPER NOTICE / IMPORTANT:
- * All product records below contain SAMPLE / PLACEHOLDER data derived for 
- * structure and design preview purposes. All sample items are prefixed with 
- * "SAMPLE — " in their name field. 
- * 
- * 🔴 BEFORE SITE LAUNCH:
- * 1. ✅ DONE — `PLAYNEST_CONFIG.whatsappNumber` is set to the live business number.
- * 2. Replace the sample items in `PLAYNEST_PRODUCTS` with your approved product inventory,
- *    final retail prices, and approved specs.
- *    ⚠️ ageRange and weightCapacity below are ILLUSTRATIVE ONLY. They were set to
- *    be internally consistent with the 6–10 positioning so the page does not
- *    contradict itself — they are NOT supplier figures. Weight limits in
- *    particular are a child-safety claim and must come from the manufacturer.
- * 3. Place actual product photos into `/images/products/` and reference their file names here.
+ *
+ * Products are NOT defined in this file. They are fetched at runtime from a
+ * published Google Sheet (CSV), so the catalogue can be edited in the sheet
+ * without touching any code.
+ *
+ * 🔴 TO POINT THE SITE AT YOUR SHEET:
+ *   1. In the sheet: File → Share → Publish to web
+ *   2. Choose the "Products" tab, format "Comma-separated values (.csv)"
+ *   3. Publish, copy the URL, paste it into PRODUCTS_CSV_URL below.
+ *
+ * Expected columns (order does not matter — they are matched by header name):
+ *   Id, Name, Category, Price, AgeRange, WeightCapacity,
+ *   Battery, Braking, ImageURL, Badge, InStock
+ *
+ *   Category  must be one of: cars | bikes | jeeps | scooters
+ *   Price     digits only, no currency symbol or separators (e.g. 6200)
+ *   InStock   TRUE or FALSE
+ *   Badge     leave blank for no badge
+ *   ImageURL  a path relative to the site root (images/products/…) or a full URL
  * ============================================================================
  */
 
@@ -24,26 +28,29 @@ const PLAYNEST_CONFIG = {
   brandName: "Playnest Toys",
   tagline: "Little Wheels, Big Smiles",
   subtext: "TOYS · RIDE · FUN",
-  
+
   // 🟢 SINGLE SOURCE OF TRUTH FOR WHATSAPP ORDERING:
   // Digits with country code, no '+', spaces, or hyphens.
   // Live business number: +91 98179 23818
-  // Every WhatsApp CTA on the site (floating Chat pill, footer button, cart
-  // checkout, and both Quick View modal links) reads from this one property.
   whatsappNumber: "919817923818",
-  
+
+  // 🔴 PUBLISHED SHEET CSV URL — paste yours here.
+  // Leave empty to fall back to data/products.csv bundled with the site.
+  PRODUCTS_CSV_URL: "",
+
+  // Local fallback, used when the sheet URL is unset or unreachable, so the
+  // catalogue never renders empty.
+  PRODUCTS_CSV_FALLBACK: "data/products.csv",
+
   // Consolidated Cart WhatsApp Message Builder
-  buildCartWhatsAppUrl: function(cartItems, grandTotal) {
+  buildCartWhatsAppUrl: function (cartItems, grandTotal) {
     const cleanNumber = this.whatsappNumber.replace(/[^0-9]/g, '');
-    
+
     let msg = `Hi Playnest Toys! 🚗✨\nI would like to place an order for the following ride-on toys:\n\n`;
-    
+
     cartItems.forEach((item, index) => {
       const itemTotal = item.product.price * item.quantity;
       msg += `${index + 1}. *${item.product.name}*\n   • Qty: ${item.quantity} × ₹${item.product.price.toLocaleString('en-IN')}\n   • Subtotal: ₹${itemTotal.toLocaleString('en-IN')}\n`;
-      if (item.product.sku) {
-        msg += `   • SKU: ${item.product.sku}\n`;
-      }
       msg += `\n`;
     });
 
@@ -57,18 +64,22 @@ const PLAYNEST_CONFIG = {
   },
 
   // Single product direct inquiry WhatsApp Link
-  buildWhatsAppUrl: function(productName, price, sku) {
+  buildWhatsAppUrl: function (productName, price) {
     const cleanNumber = this.whatsappNumber.replace(/[^0-9]/g, '');
     let msg = `Hi Playnest Toys! 🚗✨\nI would like to inquire about:\n\n*Product:* ${productName}\n*Price:* ₹${price.toLocaleString('en-IN')}`;
-    if (sku) {
-      msg += `\n*SKU:* ${sku}`;
-    }
     msg += `\n\nPlease let me know availability and delivery details to my location. Thank you!`;
     return `https://wa.me/${cleanNumber}?text=${encodeURIComponent(msg)}`;
   },
 
+  // Restock notification request, used in place of Add to Cart when InStock is FALSE
+  buildNotifyMeUrl: function (productName) {
+    const cleanNumber = this.whatsappNumber.replace(/[^0-9]/g, '');
+    const msg = `Hi Playnest Toys! 👋 Please notify me when *${productName}* is back in stock. Thank you!`;
+    return `https://wa.me/${cleanNumber}?text=${encodeURIComponent(msg)}`;
+  },
+
   // General WhatsApp Inquiry Link
-  buildGeneralInquiryUrl: function() {
+  buildGeneralInquiryUrl: function () {
     const cleanNumber = this.whatsappNumber.replace(/[^0-9]/g, '');
     const msg = `Hi Playnest Toys! 👋 I'm looking for a battery-operated ride-on toy for my child. Could you share your latest recommendations and availability?`;
     return `https://wa.me/${cleanNumber}?text=${encodeURIComponent(msg)}`;
@@ -76,310 +87,132 @@ const PLAYNEST_CONFIG = {
 };
 
 const PLAYNEST_CATEGORIES = [
-  {
-    id: "all",
-    name: "All Ride-Ons",
-    shortName: "All",
-    icon: "grid",
-    description: "Explore our entire electric ride-on toy collection"
-  },
-  {
-    id: "cars",
-    name: "Ride-On Cars",
-    shortName: "Cars",
-    icon: "car",
-    description: "Sporty supercars, luxury sedans & vintage roadsters"
-  },
-  {
-    id: "bikes",
-    name: "Bikes & Trikes",
-    shortName: "Bikes",
-    icon: "bike",
-    description: "Cruisers, racing superbikes & stable training trikes"
-  },
-  {
-    id: "jeeps",
-    name: "Jeeps & UTVs",
-    shortName: "Jeeps",
-    icon: "jeep",
-    description: "4x4 Monster off-roaders, patrol jeeps & big wheels"
-  },
-  {
-    id: "scooters",
-    name: "Scooters & Scooties",
-    shortName: "Scooters",
-    icon: "scooter",
-    description: "Classic Italian Vespa styling, single & duo-seaters"
-  }
+  { id: "all", name: "All Ride-Ons", shortName: "All" },
+  { id: "cars", name: "Ride-On Cars", shortName: "Cars" },
+  { id: "bikes", name: "Bikes & Trikes", shortName: "Bikes" },
+  { id: "jeeps", name: "Jeeps & UTVs", shortName: "Jeeps" },
+  { id: "scooters", name: "Scooters & Scooties", shortName: "Scooters" }
 ];
 
-const PLAYNEST_PRODUCTS = [
-  {
-    id: "pn-car-01",
-    name: "SAMPLE — DL1000 Dream Sports Car",
-    category: "cars",
-    price: 6700,
-    mrp: 11200,
-    sku: "DL-1000",
-    image: "images/products/car-ferrari-f8.svg",
-    inStock: true,
-    ageRange: "6–9 Yrs",
-    battery: "12V Rechargeable",
-    weightCapacity: "45 kg",
-    motors: "2x2 Dual Motor",
-    features: [
-      "Openable Butterfly Doors",
-      "2.4G Parental Remote Control",
-      "LED Headlights & Taillights",
-      "USB/AUX MP3 Music Dashboard",
-      "Soft Spring Suspension"
-    ],
-    description: "A show-stopping sports car for young speedsters. Features realistic push-button start, working headlights, openable doors, and both manual pedal drive and full parental remote override."
-  },
-  {
-    id: "pn-jeep-01",
-    name: "SAMPLE — Rubicon Extreme 4x4 Off-Roader",
-    category: "jeeps",
-    price: 10500,
-    mrp: 16500,
-    sku: "RUBI-4X4",
-    image: "images/products/jeep-rubicon-4x4.svg",
-    badge: "Biggest 4×4",
-    inStock: true,
-    ageRange: "6–10 Yrs",
-    battery: "12V Heavy-Duty",
-    weightCapacity: "60 kg",
-    motors: "4x4 Quad Motors",
-    features: [
-      "High-Clearance All-Terrain Wheels",
-      "Heavy-Duty Roll Bar & Spotlights",
-      "Parental Long-Range Remote",
-      "Dual Shock Absorbers",
-      "Spacious Wide Double-Seater"
-    ],
-    description: "Built for true adventure with quad 4x4 motors capable of grass, gravel, and pavement. Includes high-torque climbing power, working light bars, and safety seatbelt harness."
-  },
-  {
-    id: "pn-bike-01",
-    name: "SAMPLE — Royal Enfield Style Classic Cruiser",
-    category: "bikes",
-    price: 8000,
-    mrp: 15000,
-    sku: "RE-500",
-    image: "images/products/bike-royal-enfield.svg",
-    inStock: true,
-    ageRange: "6–10 Yrs",
-    battery: "12V Rechargeable",
-    weightCapacity: "50 kg",
-    motors: "High Torque Single Motor",
-    features: [
-      "Realistic Hand Accelerator Throttle",
-      "Foot Brake for Safety",
-      "Removable Stabiliser Wheels",
-      "Vintage Headlight & Engine Sound",
-      "Leather-Look Ergonomic Seat"
-    ],
-    description: "Iconic retro motorbike styling built for confident young riders. Twist-throttle hand control and a foot brake, with removable stabilisers for the first few rides."
-  },
-  {
-    id: "pn-scooter-01",
-    name: "SAMPLE — Vespa Italian Classic Scooty",
-    category: "scooters",
-    price: 4300,
-    mrp: 7000,
-    sku: "VSP-42",
-    image: "images/products/scooter-vespa-red.svg",
-    inStock: true,
-    ageRange: "6–9 Yrs",
-    battery: "12V Rechargeable",
-    weightCapacity: "50 kg",
-    motors: "Smooth Dual Drive",
-    features: [
-      "Classic Retro Curved Body",
-      "Removable Stabiliser Wheels",
-      "Hand Throttle & Foot Brake",
-      "Bluetooth Speaker & Horn",
-      "Low Step-Through Comfort Deck"
-    ],
-    description: "Charming European styling with a smooth, progressive throttle. Low centre of gravity for stability at speed, Bluetooth audio and bright chrome-look trims."
-  },
-  {
-    id: "pn-car-02",
-    name: "SAMPLE — BMW GT Sport Roadster",
-    category: "cars",
-    price: 4500,
-    mrp: 8000,
-    sku: "BMW-GT",
-    image: "images/products/car-bmw-gt.svg",
-    inStock: true,
-    ageRange: "6–8 Yrs",
-    battery: "6V / 12V Compatible",
-    weightCapacity: "40 kg",
-    motors: "2x2 Dual Motor",
-    features: [
-      "Kid-Friendly Steering Wheel",
-      "Forward & Reverse Gear Switch",
-      "Parental Remote Access",
-      "Illuminated Grill Lights",
-      "Anti-Slip Tread Tyres"
-    ],
-    description: "Sleek and compact roadster with responsive steering, illuminated kidneys grill, and safety seatbelt. Perfect for apartment driveways and living room tracks."
-  },
-  {
-    id: "pn-bike-02",
-    name: "SAMPLE — BMW RR 018 Smoke Edition Superbike",
-    category: "bikes",
-    price: 8000,
-    mrp: 10500,
-    sku: "RR-018",
-    image: "images/products/bike-bmw-rr.svg",
-    badge: "Smoke Effect",
-    inStock: true,
-    ageRange: "7–10 Yrs",
-    battery: "12V Fast-Charge",
-    weightCapacity: "45 kg",
-    motors: "High-RPM Dual Motor",
-    features: [
-      "Real Water Mist Exhaust Smoke Effect",
-      "Aerodynamic Racing Bodywork",
-      "Hand Throttle & Foot Brake",
-      "Dynamic LED Wheel Lighting",
-      "Stabilizing Trike Wheel Base"
-    ],
-    description: "The crowd favorite with cool harmless cold-mist exhaust smoke! Features aggressive racing contours, LED light-up wheels, and authentic starting motor rev sounds."
-  },
-  {
-    id: "pn-jeep-02",
-    name: "SAMPLE — Defender Heavy Duty UTV",
-    category: "jeeps",
-    price: 6200,
-    mrp: 9500,
-    sku: "DEF-1555",
-    image: "images/products/jeep-defender.svg",
-    inStock: true,
-    ageRange: "6–9 Yrs",
-    battery: "12V Long-Life",
-    weightCapacity: "45 kg",
-    motors: "4x4 Multi-Wheel Drive",
-    features: [
-      "Roof LED Light Bar",
-      "Heavy-Duty Front Bumper",
-      "Parental Wireless Remote",
-      "Multi-Function Steering Controls",
-      "Deep Lug Tread Wheels"
-    ],
-    description: "Rugged and capable mini-SUV with high road clearance, working roof beam lights, and parent wireless override for total peace of mind."
-  },
-  {
-    id: "pn-jeep-03",
-    name: "SAMPLE — Police Interceptor Patrol 911",
-    category: "jeeps",
-    price: 4000,
-    mrp: 6500,
-    sku: "POL-911",
-    image: "images/products/jeep-police-888.svg",
-    inStock: true,
-    ageRange: "6–8 Yrs",
-    battery: "6V / 12V Battery",
-    weightCapacity: "40 kg",
-    motors: "4x4 Motor Wheels",
-    features: [
-      "Flashing Red & Blue Police Sirens",
-      "Working Megaphone / PA Speaker",
-      "Parent Remote Control",
-      "Sturdy Black Guard Frame",
-      "Easy Foot Pedal Drive"
-    ],
-    description: "Let your little officer save the day! Features flashing red and blue strobe lights, realistic police siren sounds, and a fun roleplay design."
-  },
-  {
-    id: "pn-scooter-02",
-    name: "SAMPLE — Vespa Duo Double Seater",
-    category: "scooters",
-    price: 6000,
-    mrp: 10400,
-    sku: "VSP-D41",
-    image: "images/products/scooter-vespa-double.svg",
-    badge: "Twin Seat",
-    inStock: true,
-    ageRange: "6–10 Yrs",
-    battery: "12V High-Capacity",
-    weightCapacity: "55 kg",
-    motors: "Dual Rear Drive",
-    features: [
-      "Twin Tandem Cushioned Seats",
-      "Passenger Backrest Support",
-      "Parental Remote Function",
-      "Front Chrome Luggage Rack",
-      "Tri-Wheel Solid Stability"
-    ],
-    description: "Special double-seater edition with twin backrest supports so siblings or friends can cruise together in vintage style and comfort."
-  },
-  {
-    id: "pn-car-03",
-    name: "SAMPLE — Mercedes 300SL Vintage Roadster",
-    category: "cars",
-    price: 9500,
-    mrp: 16500,
-    sku: "MB-VIN15",
-    image: "images/products/car-mercedes-vintage.svg",
-    inStock: false, // Sample demo of out-of-stock state for client toggle
-    ageRange: "6–10 Yrs",
-    battery: "12V Rechargeable",
-    weightCapacity: "50 kg",
-    motors: "2x2 High-Efficiency",
-    features: [
-      "Classic Retro Curved Fenders",
-      "Dual Round Chrome Headlamps",
-      "Tufted Leatherette Seats",
-      "Bluetooth & FM Audio Console",
-      "Parent Remote with Emergency Stop"
-    ],
-    description: "Timeless automotive beauty with glistening chrome rims, vintage horn sounds, comfortable upholstery, and gentle start throttle."
-  },
-  {
-    id: "pn-bike-03",
-    name: "SAMPLE — Harley Chopper with Cargo Trunk",
-    category: "bikes",
-    price: 2800,
-    mrp: 5000,
-    sku: "HRLY-DIG",
-    image: "images/products/bike-harley-diggi.svg",
-    badge: "Best Value",
-    inStock: true,
-    ageRange: "6–8 Yrs",
-    battery: "6V Rechargeable",
-    weightCapacity: "40 kg",
-    motors: "Single Rear Drive",
-    features: [
-      "High Ape-Hanger Handlebars",
-      "Dual Storage Trunks for Toys",
-      "Foot Accelerator Pedal",
-      "Stable 3-Wheel Trike Frame",
-      "Safety Speed Limiter"
-    ],
-    description: "Super stable 3-wheeler motorcycle with rear side trunks so kids can carry snacks and smaller toys along on their driveway adventures."
-  },
-  {
-    id: "pn-jeep-04",
-    name: "SAMPLE — Polaris Monster UTV 2488",
-    category: "jeeps",
-    price: 8500,
-    mrp: 14000,
-    sku: "POL-2488",
-    image: "images/products/jeep-polaris-utv.svg",
-    inStock: true,
-    ageRange: "7–10 Yrs",
-    battery: "12V High-Output",
-    weightCapacity: "60 kg",
-    motors: "4x4 All-Wheel Drive",
-    features: [
-      "Extreme High Ground Clearance",
-      "Dazzling Roof Matrix LED Lights",
-      "Heavy-Duty Independent Springs",
-      "Keyless Start Button",
-      "Parent Remote Control"
-    ],
-    description: "High-power off-road monster with eye-catching matrix light array, giant high-grip tyres, and ample power for backyard terrain."
+/**
+ * Populated by loadProducts() before the catalogue renders. Kept as a mutable
+ * binding rather than a const so the fetch layer can swap it in wholesale.
+ */
+let PLAYNEST_PRODUCTS = [];
+
+/* ==========================================================================
+   CSV PARSING
+
+   A hand-rolled parser rather than a dependency: the site ships zero runtime
+   dependencies, and Google's CSV export is well-formed. Handles quoted fields,
+   escaped quotes ("") and embedded commas and newlines, which matter because
+   product names contain commas and braking descriptions contain "&".
+   ========================================================================== */
+function parseCSV(text) {
+  const rows = [];
+  let row = [];
+  let field = '';
+  let inQuotes = false;
+
+  // Normalise line endings so CRLF from Sheets does not leak into values.
+  const src = text.replace(/\r\n?/g, '\n');
+
+  for (let i = 0; i < src.length; i++) {
+    const c = src[i];
+
+    if (inQuotes) {
+      if (c === '"') {
+        if (src[i + 1] === '"') { field += '"'; i++; }   // escaped quote
+        else inQuotes = false;
+      } else {
+        field += c;
+      }
+      continue;
+    }
+
+    if (c === '"') { inQuotes = true; continue; }
+    if (c === ',') { row.push(field); field = ''; continue; }
+    if (c === '\n') { row.push(field); rows.push(row); row = []; field = ''; continue; }
+    field += c;
   }
-];
+
+  // Trailing field / row with no terminating newline.
+  if (field.length || row.length) { row.push(field); rows.push(row); }
+
+  return rows.filter((r) => r.some((v) => v.trim() !== ''));
+}
+
+/**
+ * Turn CSV rows into product objects, matching columns by HEADER NAME so the
+ * sheet's column order can change without breaking the site.
+ */
+function rowsToProducts(rows) {
+  if (!rows.length) return [];
+
+  const headers = rows[0].map((h) => h.trim().toLowerCase());
+  const col = (row, name) => {
+    const idx = headers.indexOf(name.toLowerCase());
+    return idx === -1 ? '' : (row[idx] || '').trim();
+  };
+
+  return rows.slice(1).map((row, i) => {
+    const name = col(row, 'Name');
+    if (!name) return null;
+
+    // Strip anything that is not a digit so "₹6,200" and "6200" both work.
+    const price = parseInt(col(row, 'Price').replace(/[^0-9]/g, ''), 10);
+
+    const stockRaw = col(row, 'InStock').toUpperCase();
+    // Anything other than an explicit FALSE/NO/0 counts as in stock, so a blank
+    // cell never silently hides a product's buy button.
+    const inStock = !['FALSE', 'NO', '0'].includes(stockRaw);
+
+    return {
+      id: col(row, 'Id') || 'row-' + (i + 1),
+      name,
+      category: (col(row, 'Category') || 'bikes').toLowerCase(),
+      price: Number.isFinite(price) ? price : 0,
+      ageRange: col(row, 'AgeRange'),
+      weightCapacity: col(row, 'WeightCapacity'),
+      battery: col(row, 'Battery'),
+      braking: col(row, 'Braking'),
+      image: col(row, 'ImageURL'),
+      badge: col(row, 'Badge'),
+      inStock
+    };
+  }).filter(Boolean);
+}
+
+/**
+ * Fetch the catalogue. Tries the published sheet first, then the bundled
+ * fallback CSV, so a sheet outage or an unset URL degrades to the last known
+ * catalogue instead of an empty grid.
+ *
+ * @returns {Promise<{products: Array, source: string}>}
+ */
+async function loadProducts() {
+  const sources = [
+    PLAYNEST_CONFIG.PRODUCTS_CSV_URL,
+    PLAYNEST_CONFIG.PRODUCTS_CSV_FALLBACK
+  ].filter(Boolean);
+
+  for (const url of sources) {
+    try {
+      // cache: 'no-store' asks the browser not to add its own caching on top of
+      // Google's edge cache, so the delay is Google's alone.
+      const res = await fetch(url, { cache: 'no-store' });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+
+      const products = rowsToProducts(parseCSV(await res.text()));
+      if (!products.length) throw new Error('no rows parsed');
+
+      PLAYNEST_PRODUCTS = products;
+      return { products, source: url };
+    } catch (err) {
+      console.warn('[playnest] product source failed:', url, '—', err.message);
+    }
+  }
+
+  PLAYNEST_PRODUCTS = [];
+  return { products: [], source: null };
+}
