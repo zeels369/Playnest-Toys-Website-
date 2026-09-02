@@ -183,6 +183,26 @@ function initCategoryCounts() {
   const scooterCountEl = document.getElementById('count-scooters');
   if (scooterCountEl) scooterCountEl.textContent = `${counts.scooters} Models`;
 
+  // Each category tile shows a real product photo rather than a line icon.
+  // The flagship (highest-priced in that category) stands in for the category,
+  // pulled from the same CSV as everything else — so a catalogue change updates
+  // these automatically and no image path is hardcoded here.
+  document.querySelectorAll('.category-card').forEach(card => {
+    const catId = card.getAttribute('data-category');
+    const inCat = PLAYNEST_PRODUCTS.filter(p => p.category === catId && p.image);
+    const flagship = inCat.sort((x, y) => y.price - x.price)[0];
+    const img = card.querySelector('.category-photo img');
+    if (!img) return;
+
+    if (flagship) {
+      img.src = flagship.image;
+      card.classList.remove('category-card--empty');
+    } else {
+      // No products yet (e.g. Cars). Say so rather than showing a blank frame.
+      card.classList.add('category-card--empty');
+    }
+  });
+
   // Attach click listener to category strip cards
   const categoryCards = document.querySelectorAll('.category-card');
   categoryCards.forEach(card => {

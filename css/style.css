@@ -113,6 +113,12 @@
      backdrop is entirely CSS and re-themes for free. The radial glow gives the
      glossy BLACK jeep a lighter pool to read against — without it the vehicle
      silhouette dissolves into the page colour in dark mode. */
+  /* --- SEMANTIC: category photo tiles --- */
+  --cat-scrim-strong: rgba(12, 16, 32, 0.86);
+  --cat-scrim-soft: rgba(12, 16, 32, 0.42);
+  --cat-label: #FFFFFF;
+  --cat-label-muted: rgba(255, 255, 255, 0.82);
+
   --hero-stage-glow: #FFFFFF;          /* centre of the radial stage       */
   --hero-stage-base: #E8E2D4;          /* outer edge of the stage          */
   --hero-ground: rgba(27, 42, 94, 0.16); /* contact shadow under the tyres */
@@ -232,6 +238,8 @@
 
     /* Dark mode leans the scrim heavier: less glare from a bright video
        against an otherwise dark page, and a moodier hero. */
+    --cat-scrim-strong: rgba(6, 8, 16, 0.90);
+    --cat-scrim-soft: rgba(6, 8, 16, 0.50);
     --hero-stage-glow: #262E4A;
     --hero-stage-base: #0F111A;
     --hero-ground: rgba(0, 0, 0, 0.55);
@@ -315,6 +323,8 @@
 
   /* Dark mode leans the scrim heavier: less glare from a bright video
      against an otherwise dark page, and a moodier hero. */
+  --cat-scrim-strong: rgba(6, 8, 16, 0.90);
+  --cat-scrim-soft: rgba(6, 8, 16, 0.50);
   --hero-stage-glow: #262E4A;
   --hero-stage-base: #0F111A;
   --hero-ground: rgba(0, 0, 0, 0.55);
@@ -1030,36 +1040,53 @@ section[id],
   box-shadow: var(--shadow-md);
 }
 
-/* Oversized glyph anchored to the corner and deliberately cropped by the card.
-   This is what breaks the generic 'icon tile above a heading' stack. */
-.category-glyph {
+/* --------------------------------------------------------------------------
+   CATEGORY PHOTO
+
+   Real product photography rather than line icons, so the category strip reads
+   like the rest of the site. The image is the category's flagship product,
+   chosen at runtime from the CSV (see initCategoryCounts).
+
+   The source photos are square supplier plates with the product NAME set large
+   across the top and a spec strip along the bottom. Both would fight the
+   category label, so object-position pushes the frame down onto the vehicle
+   itself and the tile crops the rest away.
+   -------------------------------------------------------------------------- */
+.category-photo {
   position: absolute;
-  top: -14px;
-  right: -18px;
-  width: 116px;
-  height: 116px;
-  color: var(--text-heading);
-  opacity: 0.16;
-  transform: rotate(-8deg);
-  transition: transform var(--transition-spring), opacity var(--transition-normal), color var(--transition-normal);
-  pointer-events: none;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
 }
 
-.category-card:hover .category-glyph,
-.category-card.active .category-glyph {
-  color: var(--color-coral);
-  opacity: 0.30;
-  transform: rotate(-8deg) scale(1.08) translate(-4px, 4px);
-}
-
-.category-icon-svg {
+.category-photo img {
   width: 100%;
   height: 100%;
-  stroke: currentColor;
-  fill: none;
-  stroke-width: 1.4;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+  object-fit: cover;
+  /* Frame the vehicle, not the supplier's title band. */
+  object-position: center 56%;
+  transform: scale(1.04);
+  transform-origin: center 56%;
+  transition: transform var(--transition-spring);
+}
+
+.category-card:hover .category-photo img,
+.category-card.active .category-photo img {
+  transform: scale(1.1);
+}
+
+/* Legibility scrim: the label sits over photography, so it needs a controlled
+   ground rather than whatever the photo happens to be behind it. */
+.category-photo::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    var(--cat-scrim-strong) 0%,
+    var(--cat-scrim-soft) 46%,
+    transparent 78%
+  );
 }
 
 .category-label {
@@ -1071,15 +1098,39 @@ section[id],
   font-family: var(--font-display);
   font-size: 1.12rem;
   font-weight: 600;
-  color: var(--text-heading);
+  color: var(--cat-label);
   margin-bottom: 2px;
+  text-shadow: 0 1px 6px var(--cat-scrim-strong);
 }
 
 .category-count {
   font-size: 0.82rem;
   font-weight: 500;
-  color: var(--text-muted);
+  color: var(--cat-label-muted);
+  text-shadow: 0 1px 6px var(--cat-scrim-strong);
 }
+
+/* A category with no products yet keeps its tile but says so plainly, instead
+   of showing an empty photo frame. */
+.category-card--empty .category-photo img { display: none; }
+.category-card--empty .category-photo::after { display: none; }
+.category-card--empty .category-name { color: var(--text-heading); text-shadow: none; }
+.category-card--empty .category-count { color: var(--text-muted); text-shadow: none; }
+
+.category-card--empty {
+  background:
+    repeating-linear-gradient(
+      -45deg,
+      var(--surface-sunken) 0 14px,
+      var(--surface-sunken-soft) 14px 28px
+    );
+}
+
+.category-card--empty .category-count::after {
+  content: ' · coming soon';
+  opacity: 0.75;
+}
+
 
 
 /* ==========================================================================
