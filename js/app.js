@@ -22,6 +22,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const { products, source } = await loadProducts();
   console.info('[playnest] loaded ' + products.length + ' products from ' + (source || 'no source'));
   if (!products.length) showCatalogUnavailable();
+  auditBadges(products);
 
   initCategoryCounts();
   initCatalog();
@@ -331,12 +332,18 @@ function renderProducts() {
       (p.ageRange || '').toLowerCase().includes(searchQuery) ||
       (p.braking || '').toLowerCase().includes(searchQuery) ||
       (p.battery || '').toLowerCase().includes(searchQuery) ||
-      (p.badge || '').toLowerCase().includes(searchQuery);
+      (p.badge || '').toLowerCase().includes(searchQuery) ||
+      (p.description || '').toLowerCase().includes(searchQuery);
     return matchesCat && matchesSearch;
   });
 
   // 2. Sort
-  if (currentSort === 'price-asc') {
+  if (currentSort === 'featured') {
+    // Featured rows first, catalogue order preserved within each group.
+    // Array.prototype.sort is stable in every engine we target, so equal
+    // items keep their sheet order rather than being shuffled.
+    filtered.sort((x, y) => (y.featured === true) - (x.featured === true));
+  } else if (currentSort === 'price-asc') {
     filtered.sort((a, b) => a.price - b.price);
   } else if (currentSort === 'price-desc') {
     filtered.sort((a, b) => b.price - a.price);
@@ -369,7 +376,7 @@ function renderProducts() {
     const isAvailable = p.inStock !== false;
 
     return `
-      <article class="product-card${!isAvailable ? ' product-card--oos' : ''}" data-id="${p.id}" style="--card-index:${i}">
+      <article class="product-card${!isAvailable ? ' product-card--oos' : ''}${p.featured ? ' product-card--featured' : ''}" data-id="${p.id}" style="--card-index:${i}">
         
         <!-- Media Container -->
         <div class="card-media" onclick="openProductModal('${p.id}')" role="button" tabindex="0" aria-label="View specifications for ${escapeHtml(p.name)}">
@@ -972,7 +979,11 @@ window.openProductModal = function(productId) {
   // No MRP in the sheet — one real price per product, so the strikethrough is
   // hidden rather than filled with an invented "was" figure.
   if (mrpEl) { mrpEl.textContent = ''; mrpEl.style.display = 'none'; }
-  if (descEl) { descEl.textContent = ''; descEl.style.display = 'none'; }
+  if (descEl) {
+    const text = (product.description || '').trim();
+    descEl.textContent = text;
+    descEl.style.display = text ? '' : 'none';
+  }
   if (ageEl) ageEl.textContent = product.ageRange || '—';
   if (weightEl) weightEl.textContent = product.weightCapacity || '—';
   if (batteryEl) batteryEl.textContent = product.battery || '—';

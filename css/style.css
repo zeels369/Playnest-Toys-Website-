@@ -2770,3 +2770,20 @@ section[id],
 .product-card--oos .card-media {
   opacity: 0.82;
 }
+
+/* ==========================================================================
+   FEATURED PRODUCTS
+
+   Featured=TRUE in the sheet lifts a product to the top under the default
+   "Featured First" sort. A quiet accent ring makes the promotion visible —
+   without it the visitor only sees an ordering they cannot perceive. Kept
+   deliberately subtle so it never competes with the badge.
+   ========================================================================== */
+.product-card--featured {
+  border-color: var(--color-yellow);
+  box-shadow: var(--shadow-sm), inset 0 0 0 1px var(--color-yellow);
+}
+
+.product-card--featured:hover {
+  border-color: var(--color-yellow);
+}

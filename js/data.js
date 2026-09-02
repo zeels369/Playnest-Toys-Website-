@@ -13,13 +13,15 @@
  *   3. Publish, copy the URL, paste it into PRODUCTS_CSV_URL below.
  *
  * Expected columns (order does not matter — they are matched by header name):
- *   Id, Name, Category, Price, AgeRange, WeightCapacity,
- *   Battery, Braking, ImageURL, Badge, InStock
+ *   Id, Name, Category, Price, AgeRange, WeightCapacity, Battery, Braking,
+ *   Description, ImageURL, Badge, Featured, InStock
  *
  *   Category  must be one of: cars | bikes | jeeps | scooters
  *   Price     digits only, no currency symbol or separators (e.g. 6200)
  *   InStock   TRUE or FALSE
  *   Badge     leave blank for no badge
+ *   Featured  TRUE lifts the product to the top under the default sort
+ *   Description  free text shown in the Quick View modal; blank hides the block
  *   ImageURL  a path relative to the site root (images/products/…) or a full URL
  * ============================================================================
  */
@@ -176,8 +178,12 @@ function rowsToProducts(rows) {
       weightCapacity: col(row, 'WeightCapacity'),
       battery: col(row, 'Battery'),
       braking: col(row, 'Braking'),
+      description: col(row, 'Description'),
       image: col(row, 'ImageURL'),
       badge: col(row, 'Badge'),
+      // Same permissive rule as InStock: only an explicit TRUE promotes a
+      // product, so a blank cell never silently features something.
+      featured: ['TRUE', 'YES', '1'].includes(col(row, 'Featured').toUpperCase()),
       inStock
     };
   }).filter(Boolean);
@@ -190,6 +196,8 @@ function rowsToProducts(rows) {
  *
  * @returns {Promise<{products: Array, source: string}>}
  */
+const FETCH_TIMEOUT_MS = 4000;
+
 async function loadProducts() {
   const sources = [
     PLAYNEST_CONFIG.PRODUCTS_CSV_URL,
@@ -198,9 +206,19 @@ async function loadProducts() {
 
   for (const url of sources) {
     try {
-      // cache: 'no-store' asks the browser not to add its own caching on top of
-      // Google's edge cache, so the delay is Google's alone.
-      const res = await fetch(url, { cache: 'no-store' });
+      // A dead sheet URL can hang on DNS for ~10s, leaving the grid empty that
+      // whole time. Give up quickly and fall through to the bundled copy —
+      // stale-but-instant beats correct-but-blank.
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+      let res;
+      try {
+        // cache: 'no-store' asks the browser not to add its own caching on top
+        // of Google's edge cache, so any delay is Google's alone.
+        res = await fetch(url, { cache: 'no-store', signal: controller.signal });
+      } finally {
+        clearTimeout(timer);
+      }
       if (!res.ok) throw new Error('HTTP ' + res.status);
 
       const products = rowsToProducts(parseCSV(await res.text()));
@@ -215,4 +233,75 @@ async function loadProducts() {
 
   PLAYNEST_PRODUCTS = [];
   return { products: [], source: null };
+}
+
+/* ==========================================================================
+   BADGE AUDIT
+
+   Badges are catalogue-wide: the grid shows every category together by
+   default, so the same badge on two products reads as a bug, and a superlative
+   badge is simply wrong if another product beats it on that measure.
+
+   This never rewrites the sheet. It reports to the console, so a bad badge is
+   caught the first time the page is opened rather than by a customer.
+
+   Where a criterion TIES, the rule is to leave both blank and raise it — never
+   to pick a winner silently.
+   ========================================================================== */
+function auditBadges(products) {
+  const issues = [];
+  const badged = products.filter((p) => p.badge);
+
+  // 1. The same badge text on more than one product.
+  const byBadge = {};
+  badged.forEach((p) => { (byBadge[p.badge] = byBadge[p.badge] || []).push(p.name); });
+  Object.entries(byBadge).forEach(([badge, names]) => {
+    if (names.length > 1) {
+      issues.push('Badge "' + badge + '" is on ' + names.length + ' products (' +
+        names.join(', ') + '). Badges are catalogue-wide — keep one.');
+    }
+  });
+
+  if (products.length) {
+    const prices = products.map((p) => p.price);
+    const min = Math.min(...prices);
+    const max = Math.max(...prices);
+    const cheapest = products.filter((p) => p.price === min);
+    const priciest = products.filter((p) => p.price === max);
+
+    const isValue = (p) => /best value|value pick/i.test(p.badge);
+    const isTop = (p) => /premium|top of range|flagship/i.test(p.badge);
+
+    // 2. Superlative badges the numbers contradict.
+    badged.filter(isValue).forEach((p) => {
+      if (p.price !== min) {
+        issues.push('"' + p.name + '" carries "' + p.badge + '" at ' + p.price +
+          ', but ' + min + ' (' + cheapest.map((c) => c.name).join(', ') + ') is cheaper.');
+      }
+    });
+    badged.filter(isTop).forEach((p) => {
+      if (p.price !== max) {
+        issues.push('"' + p.name + '" carries "' + p.badge + '" at ' + p.price +
+          ', but ' + max + ' (' + priciest.map((c) => c.name).join(', ') + ') is higher.');
+      }
+    });
+
+    // 3. Ties on a superlative criterion — flag, do not guess a winner.
+    if (cheapest.length > 1 && badged.some(isValue)) {
+      issues.push(cheapest.length + ' products tie at the lowest price (' +
+        cheapest.map((c) => c.name).join(', ') +
+        '). A value badge cannot be assigned without a tiebreak — leave blank and decide deliberately.');
+    }
+    if (priciest.length > 1 && badged.some(isTop)) {
+      issues.push(priciest.length + ' products tie at the highest price (' +
+        priciest.map((c) => c.name).join(', ') +
+        '). A top-of-range badge cannot be assigned without a tiebreak — leave blank and decide deliberately.');
+    }
+  }
+
+  if (issues.length) {
+    console.warn('[playnest] badge audit — ' + issues.length + ' issue(s):');
+    issues.forEach((i) => console.warn('  - ' + i));
+  }
+  return issues;
 }

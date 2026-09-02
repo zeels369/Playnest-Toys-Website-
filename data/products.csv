@@ -1,40 +1,40 @@
-Id,Name,Category,Price,AgeRange,WeightCapacity,Battery,Braking,ImageURL,Badge,InStock
-pn-yamaha-mini,Yamaha Mini,bikes,2500,2–5 yrs,30Kg Max,6V,Foot Race,images/products/yamaha-mini.jpg,,TRUE
-pn-re-small,Royal Enfield (Small),bikes,6200,2–6 yrs,40Kg Max,12V,Hand Race & Foot Break,images/products/royal-enfield-small.jpg,,TRUE
-pn-vespa-scooty,Vespa Kids Scooty,scooters,4300,2–8 yrs,50Kg Max,12V,Hand Race & Foot Break,images/products/vespa-kids-scooty.jpg,,TRUE
-pn-s800,S 800,bikes,3300,2–4 yrs,30Kg Max,6V,Foot Race,images/products/s-800.jpg,,TRUE
-pn-bmw-rr018,BMW RR 018 (with Smoke),bikes,8000,2–6 yrs,40Kg Max,12V,Hand Race & Foot Race,images/products/bmw-rr-018.jpg,Smoke Effect,TRUE
-pn-r30-painted,R 30 Painted,bikes,6300,2–6 yrs,50Kg Max,12V,Hand Race & Foot Break,images/products/r-30-painted.jpg,,TRUE
-pn-r3-jkw,R3 JKW (LED Lights),bikes,6500,2–6 yrs,40Kg Max,12V,Hand Race & Foot Race,images/products/r3-jkw.jpg,,TRUE
-pn-harley-diggi,Harley Diggi,bikes,2800,2–4 yrs,30Kg Max,6V,Foot Race,images/products/harley-diggi.jpg,,TRUE
-pn-1600-kab,1600 KAB,bikes,5800,2–6 yrs,50Kg Max,6V,Hand Race & Foot Break,images/products/1600-kab.jpg,,TRUE
-pn-harley-6622,Harley 6622,bikes,2300,2–4 yrs,30Kg Max,6V,Foot Race,images/products/harley-6622.jpg,Best Value,TRUE
-pn-vespa-double,Vespa (Double Seater),scooters,6000,2–8 yrs,50Kg Max,12V,Hand Race & Foot Break,images/products/vespa-double-seater.jpg,Twin Seat,TRUE
-pn-re-olive,Royal Enfield (Olive),bikes,8000,2–7 yrs,50Kg Max,12V,Hand Race & Foot Break,images/products/royal-enfield-olive.jpg,Premium,TRUE
-pn-r1-painted,R1 Painted,bikes,6100,2–6 yrs,50Kg Max,12V,Hand Race & Foot Break,images/products/r1-painted.jpg,,TRUE
-pn-jeep-rubicon,Rubicon,jeeps,10500,2–12 yrs,60Kg Max,12V,4x4 Motor Wheel,images/products/jeep-rubicon.jpg,,TRUE
-pn-jeep-hooper,Hooper,jeeps,5200,2–5 yrs,30Kg Max,6V,4x4 Motor Wheel,images/products/jeep-hooper.jpg,,TRUE
-pn-jeep-hooster,Hooster,jeeps,10500,2–11 yrs,60Kg Max,12V,4x4 Motor Wheel,images/products/jeep-hooster.jpg,,TRUE
-pn-jeep-518,518,jeeps,4400,2–5 yrs,30Kg Max,12V,4x4 Motor Wheel,images/products/jeep-518.jpg,,TRUE
-pn-jeep-defender,Defender,jeeps,6200,2–5 yrs,35Kg Max,12V,4x4 Motor Wheel,images/products/jeep-defender.jpg,,TRUE
-pn-jeep-6699,6699,jeeps,4400,2–5 yrs,35Kg Max,12V,4x4 Motor Wheel,images/products/jeep-6699.jpg,,TRUE
-pn-jeep-pogo,Pogo,jeeps,5800,2–8 yrs,45Kg Max,12V,4x4 Motor Wheel,images/products/jeep-pogo.jpg,,TRUE
-pn-jeep-rolls-royce,Rolls Royce,jeeps,6000,2–8 yrs,60Kg Max,12V,4x4 Motor Wheel,images/products/jeep-rolls-royce.jpg,,TRUE
-pn-jeep-908,908,jeeps,4400,2–5 yrs,30Kg Max,12V,4x4 Motor Wheel,images/products/jeep-908.jpg,,TRUE
-pn-jeep-2188,2188,jeeps,7600,2–11 yrs,60Kg Max,12V,4x4 Motor Wheel,images/products/jeep-2188.jpg,,TRUE
-pn-jeep-pogo-mercedes,Pogo Mercedes,jeeps,5800,2–8 yrs,45Kg Max,12V,4x4 Motor Wheel,images/products/jeep-pogo-mercedes.jpg,,TRUE
-pn-jeep-2488,2488,jeeps,8500,2–11 yrs,60Kg Max,12V,4x4 Motor Wheel,images/products/jeep-2488.jpg,,TRUE
-pn-jeep-bh80d,BH80D,jeeps,4000,2–5 yrs,30Kg Max,6V,4x4 Motor Wheel,images/products/jeep-bh80d.jpg,,TRUE
-pn-jeep-bh80a,BH80A,jeeps,4000,2–5 yrs,30Kg Max,12V,4x4 Motor Wheel,images/products/jeep-bh80a.jpg,,TRUE
-pn-jeep-eord,EORD,jeeps,4400,2–5 yrs,30Kg Max,12V,4x4 Motor Wheel,images/products/jeep-eord.jpg,,TRUE
-pn-jeep-8688,8688,jeeps,12000,2–12 yrs,60Kg Max,12V,4x4 Motor Wheel,images/products/jeep-8688.jpg,,TRUE
-pn-jeep-big-wheel-888,Big Wheel 888,jeeps,5800,2–5 yrs,35Kg Max,12V,4x4 Motor Wheel,images/products/jeep-big-wheel-888.jpg,,TRUE
-pn-jeep-bmw888-small,BMW888 (Small),jeeps,4400,2–5 yrs,30Kg Max,6V,4x4 Motor Wheel,images/products/jeep-bmw888-small.jpg,,TRUE
-pn-jeep-1166-ut,1166 UT,jeeps,8500,2–8 yrs,50Kg Max,12V,4x4 Motor Wheel,images/products/jeep-1166-ut.jpg,,TRUE
-pn-jeep-halcon,Halcon,jeeps,7600,2–7 yrs,40Kg Max,12V,4x4 Motor Wheel,images/products/jeep-halcon.jpg,,TRUE
-pn-jeep-8888-mercedes,8888 Mercedes,jeeps,9500,2–8 yrs,50Kg Max,12V,4x4 Motor Wheel,images/products/jeep-8888-mercedes.jpg,,TRUE
-pn-jeep-bh80e,BH80E,jeeps,4000,2–5 yrs,30Kg Max,6V,4x4 Motor Wheel,images/products/jeep-bh80e.jpg,,TRUE
-pn-jeep-528,528,jeeps,4400,2–5 yrs,30Kg Max,12V,4x4 Motor Wheel,images/products/jeep-528.jpg,,TRUE
-pn-jeep-range-rover,Range Rover,jeeps,6000,2–8 yrs,50Kg Max,12V,4x4 Motor Wheel,images/products/jeep-range-rover.jpg,,TRUE
-pn-jeep-502,502,jeeps,9000,2–10 yrs,60Kg Max,12V,4x4 Motor Wheel,images/products/jeep-502.jpg,,TRUE
-pn-jeep-bh80c,BH80C,jeeps,4000,2–5 yrs,30Kg Max,6V,4x4 Motor Wheel,images/products/jeep-bh80c.jpg,,TRUE
+Id,Name,Category,Price,AgeRange,WeightCapacity,Battery,Braking,Description,ImageURL,Badge,Featured,InStock
+pn-yamaha-mini,Yamaha Mini,bikes,2500,2–5 yrs,30Kg Max,6V,Foot Race,,images/products/yamaha-mini.jpg,,FALSE,TRUE
+pn-re-small,Royal Enfield (Small),bikes,6200,2–6 yrs,40Kg Max,12V,Hand Race & Foot Break,,images/products/royal-enfield-small.jpg,,FALSE,TRUE
+pn-vespa-scooty,Vespa Kids Scooty,scooters,4300,2–8 yrs,50Kg Max,12V,Hand Race & Foot Break,,images/products/vespa-kids-scooty.jpg,,FALSE,TRUE
+pn-s800,S 800,bikes,3300,2–4 yrs,30Kg Max,6V,Foot Race,,images/products/s-800.jpg,,FALSE,TRUE
+pn-bmw-rr018,BMW RR 018 (with Smoke),bikes,8000,2–6 yrs,40Kg Max,12V,Hand Race & Foot Race,,images/products/bmw-rr-018.jpg,Smoke Effect,FALSE,TRUE
+pn-r30-painted,R 30 Painted,bikes,6300,2–6 yrs,50Kg Max,12V,Hand Race & Foot Break,,images/products/r-30-painted.jpg,,FALSE,TRUE
+pn-r3-jkw,R3 JKW (LED Lights),bikes,6500,2–6 yrs,40Kg Max,12V,Hand Race & Foot Race,,images/products/r3-jkw.jpg,,FALSE,TRUE
+pn-harley-diggi,Harley Diggi,bikes,2800,2–4 yrs,30Kg Max,6V,Foot Race,,images/products/harley-diggi.jpg,,FALSE,TRUE
+pn-1600-kab,1600 KAB,bikes,5800,2–6 yrs,50Kg Max,6V,Hand Race & Foot Break,,images/products/1600-kab.jpg,,FALSE,TRUE
+pn-harley-6622,Harley 6622,bikes,2300,2–4 yrs,30Kg Max,6V,Foot Race,,images/products/harley-6622.jpg,Best Value,FALSE,TRUE
+pn-vespa-double,Vespa (Double Seater),scooters,6000,2–8 yrs,50Kg Max,12V,Hand Race & Foot Break,,images/products/vespa-double-seater.jpg,Twin Seat,FALSE,TRUE
+pn-re-olive,Royal Enfield (Olive),bikes,8000,2–7 yrs,50Kg Max,12V,Hand Race & Foot Break,,images/products/royal-enfield-olive.jpg,Premium,FALSE,TRUE
+pn-r1-painted,R1 Painted,bikes,6100,2–6 yrs,50Kg Max,12V,Hand Race & Foot Break,,images/products/r1-painted.jpg,,FALSE,TRUE
+pn-jeep-rubicon,Rubicon,jeeps,10500,2–12 yrs,60Kg Max,12V,4x4 Motor Wheel,,images/products/jeep-rubicon.jpg,,FALSE,TRUE
+pn-jeep-hooper,Hooper,jeeps,5200,2–5 yrs,30Kg Max,6V,4x4 Motor Wheel,,images/products/jeep-hooper.jpg,,FALSE,TRUE
+pn-jeep-hooster,Hooster,jeeps,10500,2–11 yrs,60Kg Max,12V,4x4 Motor Wheel,,images/products/jeep-hooster.jpg,,FALSE,TRUE
+pn-jeep-518,518,jeeps,4400,2–5 yrs,30Kg Max,12V,4x4 Motor Wheel,,images/products/jeep-518.jpg,,FALSE,TRUE
+pn-jeep-defender,Defender,jeeps,6200,2–5 yrs,35Kg Max,12V,4x4 Motor Wheel,,images/products/jeep-defender.jpg,,FALSE,TRUE
+pn-jeep-6699,6699,jeeps,4400,2–5 yrs,35Kg Max,12V,4x4 Motor Wheel,,images/products/jeep-6699.jpg,,FALSE,TRUE
+pn-jeep-pogo,Pogo,jeeps,5800,2–8 yrs,45Kg Max,12V,4x4 Motor Wheel,,images/products/jeep-pogo.jpg,,FALSE,TRUE
+pn-jeep-rolls-royce,Rolls Royce,jeeps,6000,2–8 yrs,60Kg Max,12V,4x4 Motor Wheel,,images/products/jeep-rolls-royce.jpg,,FALSE,TRUE
+pn-jeep-908,908,jeeps,4400,2–5 yrs,30Kg Max,12V,4x4 Motor Wheel,,images/products/jeep-908.jpg,,FALSE,TRUE
+pn-jeep-2188,2188,jeeps,7600,2–11 yrs,60Kg Max,12V,4x4 Motor Wheel,,images/products/jeep-2188.jpg,,FALSE,TRUE
+pn-jeep-pogo-mercedes,Pogo Mercedes,jeeps,5800,2–8 yrs,45Kg Max,12V,4x4 Motor Wheel,,images/products/jeep-pogo-mercedes.jpg,,FALSE,TRUE
+pn-jeep-2488,2488,jeeps,8500,2–11 yrs,60Kg Max,12V,4x4 Motor Wheel,,images/products/jeep-2488.jpg,,FALSE,TRUE
+pn-jeep-bh80d,BH80D,jeeps,4000,2–5 yrs,30Kg Max,6V,4x4 Motor Wheel,,images/products/jeep-bh80d.jpg,,FALSE,TRUE
+pn-jeep-bh80a,BH80A,jeeps,4000,2–5 yrs,30Kg Max,12V,4x4 Motor Wheel,,images/products/jeep-bh80a.jpg,,FALSE,TRUE
+pn-jeep-eord,EORD,jeeps,4400,2–5 yrs,30Kg Max,12V,4x4 Motor Wheel,,images/products/jeep-eord.jpg,,FALSE,TRUE
+pn-jeep-8688,8688,jeeps,12000,2–12 yrs,60Kg Max,12V,4x4 Motor Wheel,,images/products/jeep-8688.jpg,,FALSE,TRUE
+pn-jeep-big-wheel-888,Big Wheel 888,jeeps,5800,2–5 yrs,35Kg Max,12V,4x4 Motor Wheel,,images/products/jeep-big-wheel-888.jpg,,FALSE,TRUE
+pn-jeep-bmw888-small,BMW888 (Small),jeeps,4400,2–5 yrs,30Kg Max,6V,4x4 Motor Wheel,,images/products/jeep-bmw888-small.jpg,,FALSE,TRUE
+pn-jeep-1166-ut,1166 UT,jeeps,8500,2–8 yrs,50Kg Max,12V,4x4 Motor Wheel,,images/products/jeep-1166-ut.jpg,,FALSE,TRUE
+pn-jeep-halcon,Halcon,jeeps,7600,2–7 yrs,40Kg Max,12V,4x4 Motor Wheel,,images/products/jeep-halcon.jpg,,FALSE,TRUE
+pn-jeep-8888-mercedes,8888 Mercedes,jeeps,9500,2–8 yrs,50Kg Max,12V,4x4 Motor Wheel,,images/products/jeep-8888-mercedes.jpg,,FALSE,TRUE
+pn-jeep-bh80e,BH80E,jeeps,4000,2–5 yrs,30Kg Max,6V,4x4 Motor Wheel,,images/products/jeep-bh80e.jpg,,FALSE,TRUE
+pn-jeep-528,528,jeeps,4400,2–5 yrs,30Kg Max,12V,4x4 Motor Wheel,,images/products/jeep-528.jpg,,FALSE,TRUE
+pn-jeep-range-rover,Range Rover,jeeps,6000,2–8 yrs,50Kg Max,12V,4x4 Motor Wheel,,images/products/jeep-range-rover.jpg,,FALSE,TRUE
+pn-jeep-502,502,jeeps,9000,2–10 yrs,60Kg Max,12V,4x4 Motor Wheel,,images/products/jeep-502.jpg,,FALSE,TRUE
+pn-jeep-bh80c,BH80C,jeeps,4000,2–5 yrs,30Kg Max,6V,4x4 Motor Wheel,,images/products/jeep-bh80c.jpg,,FALSE,TRUE
