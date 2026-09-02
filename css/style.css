@@ -1113,6 +1113,24 @@ section[id],
 /* A category with no products yet keeps its tile but says so plainly, instead
    of showing an empty photo frame. */
 .category-card--empty .category-photo img { display: none; }
+
+/* An empty category that DOES have stock art reads like a normal tile again,
+   but keeps its 'coming soon' count so it never implies stock. */
+.category-card--empty.category-card--stock-art {
+  border-style: solid;
+  border-color: transparent;
+  background: var(--surface-sunken);
+}
+.category-card--empty.category-card--stock-art .category-photo img { display: block; }
+.category-card--empty.category-card--stock-art .category-photo::after { display: block; }
+.category-card--empty.category-card--stock-art .category-name {
+  color: var(--cat-label);
+  text-shadow: 0 1px 6px var(--cat-scrim-strong);
+}
+.category-card--empty.category-card--stock-art .category-count {
+  color: var(--cat-label-muted);
+  text-shadow: 0 1px 6px var(--cat-scrim-strong);
+}
 .category-card--empty .category-photo::after { display: none; }
 .category-card--empty .category-name { color: var(--text-heading); text-shadow: none; }
 .category-card--empty .category-count { color: var(--text-muted); text-shadow: none; }

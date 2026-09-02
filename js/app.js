@@ -197,10 +197,24 @@ function initCategoryCounts() {
     if (flagship) {
       img.src = flagship.image;
       card.classList.remove('category-card--empty');
-    } else {
-      // No products yet (e.g. Cars). Say so rather than showing a blank frame.
-      card.classList.add('category-card--empty');
+      return;
     }
+
+    // No products in this category yet. Fall back to a stock tile image at a
+    // conventional path — images/categories/<id>.jpg — so an empty category can
+    // still look finished. This is a CONVENTION, not a per-category hardcode:
+    // any future empty category picks up its own file automatically.
+    // The 'coming soon' label stays, so the tile never implies stock we lack.
+    card.classList.add('category-card--empty');
+    const fallback = 'images/categories/' + catId + '.jpg';
+    const probe = new Image();
+    probe.onload = () => {
+      img.src = fallback;
+      card.classList.add('category-card--stock-art');
+    };
+    // No file for this category: the plain dashed slot remains.
+    probe.onerror = () => {};
+    probe.src = fallback;
   });
 
   // Attach click listener to category strip cards
