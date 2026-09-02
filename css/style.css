@@ -1118,12 +1118,9 @@ section[id],
 .category-card--empty .category-count { color: var(--text-muted); text-shadow: none; }
 
 .category-card--empty {
-  background:
-    repeating-linear-gradient(
-      -45deg,
-      var(--surface-sunken) 0 14px,
-      var(--surface-sunken-soft) 14px 28px
-    );
+  background: var(--surface-sunken);
+  border-style: dashed;
+  border-color: var(--border-default);
 }
 
 .category-card--empty .category-count::after {
