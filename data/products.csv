@@ -38,3 +38,12 @@ pn-jeep-528,528,jeeps,4400,2–5 yrs,30Kg Max,12V,4x4 Motor Wheel,,images/produc
 pn-jeep-range-rover,Range Rover,jeeps,6000,2–8 yrs,50Kg Max,12V,4x4 Motor Wheel,,images/products/jeep-range-rover.jpg,,FALSE,TRUE
 pn-jeep-502,502,jeeps,9000,2–10 yrs,60Kg Max,12V,4x4 Motor Wheel,,images/products/jeep-502.jpg,,FALSE,TRUE
 pn-jeep-bh80c,BH80C,jeeps,4000,2–5 yrs,30Kg Max,6V,4x4 Motor Wheel,,images/products/jeep-bh80c.jpg,,FALSE,TRUE
+pn-car-dream-dl-1000,Dream Car DL 1000,cars,6700,2–6 yrs,40Kg Max,12V,2x2 Motor Wheels,Openable car door.,images/products/car-dream-dl-1000.jpg,,FALSE,TRUE
+pn-car-lexus,Lexus Car,cars,9000,2–6 yrs,50Kg Max,12V,2x2 Motor Wheels,Openable car door.,images/products/car-lexus.jpg,,FALSE,TRUE
+pn-car-land-cruiser,Land Cruiser Car,cars,9000,2–6 yrs,45Kg Max,12V,2x2 Motor Wheels,,images/products/car-land-cruiser.jpg,,FALSE,TRUE
+pn-car-innova,Innova,cars,14500,2–6 yrs,40Kg Max,12V,2x2 Motor Wheels,Openable car door.,images/products/car-innova.jpg,,FALSE,TRUE
+pn-car-f8-ferrari,F8 Ferrari Car with Smoke,cars,8800,2–6 yrs,40Kg Max,12V,2x2 Motor Wheels,Openable car door.,images/products/car-f8-ferrari.jpg,,FALSE,TRUE
+pn-car-mercedes-vintage,Mercedes Vintage,cars,9500,2–7 yrs,50Kg Max,12V,2x2 Motor Wheels,Openable car door.,images/products/car-mercedes-vintage.jpg,,FALSE,TRUE
+pn-car-ford,Ford,cars,4500,2–5 yrs,30Kg Max,6V,2x2 Motor Wheels,,images/products/car-ford.jpg,,FALSE,TRUE
+pn-car-fortuner,Fortuner,cars,14500,2–6 yrs,40Kg Max,12V,2x2 Motor Wheels,Openable car door.,images/products/car-fortuner.jpg,,FALSE,TRUE
+pn-car-bmw,BMW,cars,4500,,,,2x2 Motor Wheels,,images/products/car-bmw.jpg,,FALSE,TRUE

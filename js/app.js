@@ -393,19 +393,13 @@ function renderProducts() {
           <h3 class="card-title" title="${escapeHtml(p.name)}">${escapeHtml(p.name)}</h3>
           
           <!-- Spec Badges -->
+          <!-- A spec chip is only rendered when the sheet actually has that
+               value. A supplier plate missing a spec would otherwise render an
+               icon with no text beside it, which reads as broken. -->
           <div class="card-spec-chips">
-            <span class="spec-chip" title="Recommended Age">
-              <svg class="spec-chip-icon" viewBox="0 0 24 24"><path d="M12 2a5 5 0 1 0 5 5 5 5 0 0 0-5-5zm0 8a3 3 0 1 1 3-3 3 3 0 0 1-3 3zm9 11v-1a7 7 0 0 0-7-7h-4a7 7 0 0 0-7 7v1h2v-1a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v1z"/></svg>
-              ${p.ageRange}
-            </span>
-            <span class="spec-chip" title="Battery Power">
-              <svg class="spec-chip-icon" viewBox="0 0 24 24"><path d="M11 15h2v2h-2zm0-8h2v6h-2zm.99-5C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/></svg>
-              ${escapeHtml(p.battery)}
-            </span>
-            <span class="spec-chip" title="Weight Capacity">
-              <svg class="spec-chip-icon" viewBox="0 0 24 24"><path d="M19 13h-6V7h-2v6H5v2h6v6h2v-6h6z"/></svg>
-              ${escapeHtml(p.weightCapacity)}
-            </span>
+            ${specChip('Recommended Age', p.ageRange, '<path d="M12 2a5 5 0 1 0 5 5 5 5 0 0 0-5-5zm0 8a3 3 0 1 1 3-3 3 3 0 0 1-3 3zm9 11v-1a7 7 0 0 0-7-7h-4a7 7 0 0 0-7 7v1h2v-1a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v1z"/>')}
+            ${specChip('Battery Power', p.battery, '<path d="M11 15h2v2h-2zm0-8h2v6h-2zm.99-5C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/>')}
+            ${specChip('Weight Capacity', p.weightCapacity, '<path d="M19 13h-6V7h-2v6H5v2h6v6h2v-6h6z"/>')}
           </div>
 
           <!-- Price: a single clean figure. No MRP strikethrough — the sheet
@@ -432,6 +426,20 @@ function renderProducts() {
       </article>
     `;
   }).join('');
+}
+
+/**
+ * Render one spec chip, or nothing at all when the sheet has no value for it.
+ * @param {string} label  tooltip text
+ * @param {string} value  the sheet value; blank means "omit this chip entirely"
+ * @param {string} iconPath  inner SVG markup for the chip icon
+ */
+function specChip(label, value, iconPath) {
+  const v = (value || '').trim();
+  if (!v) return '';
+  return '<span class="spec-chip" title="' + escapeHtml(label) + '">' +
+    '<svg class="spec-chip-icon" viewBox="0 0 24 24">' + iconPath + '</svg>' +
+    escapeHtml(v) + '</span>';
 }
 
 function escapeHtml(str) {
