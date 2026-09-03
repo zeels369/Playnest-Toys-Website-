@@ -89,6 +89,19 @@
   --border-subtle: rgba(27, 42, 94, 0.08);
   --border-default: rgba(27, 42, 94, 0.12);
   --border-strong: rgba(27, 42, 94, 0.15);
+
+  /* Theme switch. The border is what makes the control's boundary visible
+     (3.9:1 on the header), because a track fill light enough to read as "off"
+     can never carry that contrast on its own. */
+  --toggle-track-bg: #D2CCBA;
+  --toggle-track-border: #767D93;
+  --toggle-track-icon: #5F6678;
+  --toggle-thumb-ring: rgba(27, 42, 94, 0.35);
+
+  /* "% OFF" tag. Green so a saving never competes with the coral price or the
+  red Add to Cart. 6.5:1. */
+  --discount-bg: #E3F5EF;
+  --discount-text: #0B6156;
   --border-footer: rgba(255, 255, 255, 0.1);
 
   /* --- SEMANTIC: out-of-stock / disabled --- */
@@ -218,7 +231,17 @@
 
     --border-subtle: rgba(255, 255, 255, 0.08);
     --border-default: rgba(255, 255, 255, 0.13);
-    --border-strong: rgba(255, 255, 255, 0.20);
+  --border-strong: rgba(255, 255, 255, 0.20);
+  
+    /* Theme switch — same reasoning, inverted. */
+    --toggle-track-bg: #2A3358;
+  --toggle-track-border: #7C89B8;
+  --toggle-track-icon: #9AA6C9;
+  --toggle-thumb-ring: rgba(0, 0, 0, 0.45);
+
+  /* "% OFF" tag. 8.3:1. */
+  --discount-bg: #17352F;
+  --discount-text: #6FE0C8;
     --border-footer: rgba(255, 255, 255, 0.09);
 
     --disabled-bg: #262A38;
@@ -304,6 +327,16 @@
   --border-subtle: rgba(255, 255, 255, 0.08);
   --border-default: rgba(255, 255, 255, 0.13);
   --border-strong: rgba(255, 255, 255, 0.20);
+  
+  /* Theme switch — same reasoning, inverted. */
+  --toggle-track-bg: #2A3358;
+  --toggle-track-border: #7C89B8;
+  --toggle-track-icon: #9AA6C9;
+  --toggle-thumb-ring: rgba(0, 0, 0, 0.45);
+
+  /* "% OFF" tag. 8.3:1. */
+  --discount-bg: #17352F;
+  --discount-text: #6FE0C8;
   --border-footer: rgba(255, 255, 255, 0.09);
 
   --disabled-bg: #262A38;
@@ -1348,10 +1381,21 @@ section[id],
   transform: scale(1.06);
 }
 
-.card-badge {
+/* A product can carry more than one badge, so they stack down the corner
+   rather than overlapping. The stack owns the positioning; each badge inside
+   it is a plain tag. */
+.card-badge-stack {
   position: absolute;
   top: 10px;
   left: 10px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.card-badge {
   background: var(--color-navy);
   color: var(--color-white);
   font-size: 0.72rem;
@@ -1359,7 +1403,6 @@ section[id],
   letter-spacing: 0.02em;
   padding: 4px 8px;
   border-radius: var(--radius-sm);
-  z-index: 2;
 }
 
 .badge-out-of-stock {
@@ -1470,6 +1513,28 @@ section[id],
   font-size: 0.8rem;
   color: var(--text-muted);
   text-decoration: line-through;
+}
+
+/* Discount pricing. Both of these only exist in the markup when the sheet
+   carries an OriginalPrice above the selling price, so an undiscounted card is
+   byte-for-byte what it was before. */
+.card-price-was {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  /* <s> already strikes the text; this keeps the line the same weight as the
+     glyphs rather than the browser default hairline. */
+  text-decoration-thickness: 1px;
+}
+
+.card-discount {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  background: var(--discount-bg);
+  color: var(--discount-text);
+  white-space: nowrap;
 }
 
 /* Add to Cart Button */
@@ -1999,7 +2064,18 @@ section[id],
 .modal-mrp {
   font-size: 0.95rem;
   color: var(--text-muted);
-  text-decoration: line-through;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.modal-discount {
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: var(--radius-sm);
+  background: var(--discount-bg);
+  color: var(--discount-text);
 }
 
 .modal-description {
@@ -2342,16 +2418,27 @@ section[id],
 
 /* ==========================================================================
    DARK MODE TOGGLE (HEADER)
-   A pill-shaped switch: the thumb slides across and the icon crossfades.
-   Shows the destination, not the current state — moon in light mode ("go
-   dark"), sun in dark mode ("go light") — matching the aria-label that
-   js/app.js keeps in sync.
+   A pill-shaped switch. The thumb shows the mode that is CURRENTLY ACTIVE
+   (sun while light, moon while dark) and the track carries both options dim
+   behind it, so the thumb's position and its icon always tell the same story.
+   An earlier version showed the destination instead, which read ambiguously:
+   a moon on a light page could equally mean "you are in dark mode".
+
+   The travel below deliberately subtracts the border as well as the padding.
+   Omitting it parked the thumb 4px from the left edge but only 2px from the
+   right, which is small enough to look like a rendering bug rather than a
+   design.
    ========================================================================== */
 .theme-toggle {
   --toggle-w: 60px;
   --toggle-h: 32px;
   --toggle-pad: 3px;
-  --thumb: calc(var(--toggle-h) - var(--toggle-pad) * 2);
+  --toggle-border: 1px;
+  --thumb: calc(var(--toggle-h) - var(--toggle-border) * 2 - var(--toggle-pad) * 2);
+  /* Distance the thumb travels so its gap is identical at both ends. */
+  --thumb-travel: calc(
+    var(--toggle-w) - var(--toggle-border) * 2 - var(--toggle-pad) * 2 - var(--thumb)
+  );
 
   background: none;
   border: none;
@@ -2369,11 +2456,29 @@ section[id],
   width: var(--toggle-w);
   height: var(--toggle-h);
   border-radius: var(--radius-full);
-  background: var(--surface-sunken);
-  border: 1px solid var(--border-default);
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.08);
+  /* The old track was --surface-sunken on the header's own near-white: 1.12:1,
+     which left a white thumb apparently floating on nothing. These two carry
+     the switch's outline instead, and both clear the 3:1 that WCAG 1.4.11 asks
+     of a control's boundary. */
+  background: var(--toggle-track-bg);
+  border: var(--toggle-border) solid var(--toggle-track-border);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.10);
   transition: background-color var(--transition-normal), border-color var(--transition-normal);
 }
+
+/* The two destinations, dim, sitting under the thumb. */
+.theme-track-icon {
+  position: absolute;
+  top: 50%;
+  width: 13px;
+  height: 13px;
+  margin-top: -6.5px;
+  color: var(--toggle-track-icon);
+  transition: color var(--transition-normal);
+  pointer-events: none;
+}
+.theme-track-icon--sun  { left: 6px; }
+.theme-track-icon--moon { right: 6px; }
 
 .theme-toggle:hover .theme-toggle-track {
   border-color: var(--color-coral);
@@ -2381,6 +2486,7 @@ section[id],
 
 .theme-toggle-thumb {
   position: absolute;
+  z-index: 1;
   top: var(--toggle-pad);
   left: var(--toggle-pad);
   width: var(--thumb);
@@ -2388,7 +2494,9 @@ section[id],
   border-radius: 50%;
   background: var(--surface-raised);
   color: var(--color-navy);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+  /* The hairline ring is what separates the knob from the track; the drop
+     shadow alone washes out against a pale track. */
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18), 0 0 0 1px var(--toggle-thumb-ring);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2407,25 +2515,21 @@ section[id],
   transition: opacity var(--transition-normal), transform var(--transition-normal);
 }
 
-/* Light mode: thumb parked left, moon showing. */
-.theme-icon--sun  { opacity: 0; transform: rotate(-90deg) scale(0.5); }
-.theme-icon--moon { opacity: 1; transform: rotate(0deg) scale(1); }
+/* Light mode: thumb parked left over the sun, sun showing on the thumb. */
+.theme-icon--sun  { opacity: 1; transform: rotate(0deg) scale(1); }
+.theme-icon--moon { opacity: 0; transform: rotate(90deg) scale(0.5); }
 
-/* Dark mode: thumb slides right, sun showing. */
-:root[data-theme="dark"] .theme-toggle-track {
-  background: var(--color-navy);
-  border-color: var(--border-strong);
-}
+/* Dark mode: thumb slides right over the moon, moon showing on the thumb. */
 :root[data-theme="dark"] .theme-toggle-thumb {
-  transform: translateX(calc(var(--toggle-w) - var(--thumb) - var(--toggle-pad) * 2));
+  transform: translateX(var(--thumb-travel));
   background: var(--color-yellow);
   color: #12141C;
 }
 :root[data-theme="dark"] .theme-toggle:active .theme-toggle-thumb {
-  transform: translateX(calc(var(--toggle-w) - var(--thumb) - var(--toggle-pad) * 2)) scale(0.92);
+  transform: translateX(var(--thumb-travel)) scale(0.92);
 }
-:root[data-theme="dark"] .theme-icon--sun  { opacity: 1; transform: rotate(0deg) scale(1); }
-:root[data-theme="dark"] .theme-icon--moon { opacity: 0; transform: rotate(90deg) scale(0.5); }
+:root[data-theme="dark"] .theme-icon--sun  { opacity: 0; transform: rotate(-90deg) scale(0.5); }
+:root[data-theme="dark"] .theme-icon--moon { opacity: 1; transform: rotate(0deg) scale(1); }
 
 /* Keep the toggle usable on small screens where the nav menu is hidden. */
 @media (max-width: 400px) {

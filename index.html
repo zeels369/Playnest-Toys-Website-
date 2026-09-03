@@ -72,8 +72,14 @@
       </nav>
 
       <div class="header-actions">
-        <!-- Dark Mode Toggle: sun shown in dark mode ("switch to light"),
-             moon shown in light mode ("switch to dark"). -->
+        <!-- Dark Mode Toggle.
+
+             The thumb shows the mode that is CURRENTLY ACTIVE — sun while the
+             site is light, moon while it is dark — and both destinations stay
+             visible as dim icons in the track behind it. Position and icon
+             therefore always agree, so the switch cannot be read backwards.
+             The aria-label states the ACTION ("Switch to dark mode"), which is
+             what a screen reader user needs; js/app.js keeps it in sync. -->
         <button
           type="button"
           class="theme-toggle"
@@ -83,6 +89,15 @@
           title="Switch to dark mode"
         >
           <span class="theme-toggle-track" aria-hidden="true">
+            <!-- Both options, dim, so the track itself shows what the switch
+                 chooses between. The thumb covers whichever one is active. -->
+            <svg class="theme-track-icon theme-track-icon--sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="4.2"/>
+              <path d="M12 2.4v2.4M12 19.2v2.4M4.22 4.22l1.7 1.7M18.08 18.08l1.7 1.7M2.4 12h2.4M19.2 12h2.4M4.22 19.78l1.7-1.7M18.08 5.92l1.7-1.7"/>
+            </svg>
+            <svg class="theme-track-icon theme-track-icon--moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20.5 14.6A8.6 8.6 0 0 1 9.4 3.5a8.6 8.6 0 1 0 11.1 11.1z"/>
+            </svg>
             <span class="theme-toggle-thumb">
               <!-- Sun -->
               <svg class="theme-icon theme-icon--sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">

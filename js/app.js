@@ -332,7 +332,7 @@ function renderProducts() {
       (p.ageRange || '').toLowerCase().includes(searchQuery) ||
       (p.braking || '').toLowerCase().includes(searchQuery) ||
       (p.battery || '').toLowerCase().includes(searchQuery) ||
-      (p.badge || '').toLowerCase().includes(searchQuery) ||
+      (p.badges || []).some((b) => b.toLowerCase().includes(searchQuery)) ||
       (p.description || '').toLowerCase().includes(searchQuery);
     return matchesCat && matchesSearch;
   });
@@ -380,7 +380,9 @@ function renderProducts() {
         
         <!-- Media Container -->
         <div class="card-media" onclick="openProductModal('${p.id}')" role="button" tabindex="0" aria-label="View specifications for ${escapeHtml(p.name)}">
-          ${!isAvailable ? `<span class="badge-out-of-stock">Out of Stock</span>` : (p.badge ? `<span class="card-badge">${p.badge}</span>` : '')}
+          ${!isAvailable
+            ? `<span class="badge-out-of-stock">Out of Stock</span>`
+            : badgeStack(p)}
           <img src="${p.image}" alt="${escapeHtml(p.name)}" class="card-img${!isAvailable ? ' card-img--dimmed' : ''}" loading="lazy">
           <button class="quick-view-trigger" aria-label="Quick view specifications">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
@@ -402,11 +404,16 @@ function renderProducts() {
             ${specChip('Weight Capacity', p.weightCapacity, '<path d="M19 13h-6V7h-2v6H5v2h6v6h2v-6h6z"/>')}
           </div>
 
-          <!-- Price: a single clean figure. No MRP strikethrough — the sheet
-               carries one real price per product and inventing a "was" figure
-               would be a fabricated discount claim. -->
+          <!-- Price. The struck-through figure and the "% OFF" tag appear
+               only when the sheet carries an OriginalPrice above the selling
+               price, so an undiscounted product renders exactly as before:
+               one clean number, nothing struck through. -->
           <div class="card-price-row">
             <span class="card-price">₹${p.price.toLocaleString('en-IN')}</span>
+            ${p.originalPrice ? `
+              <s class="card-price-was">₹${p.originalPrice.toLocaleString('en-IN')}</s>
+              <span class="card-discount">${p.discountPercent}% OFF</span>
+            ` : ''}
           </div>
 
           <!-- Out of stock keeps the product visible but swaps the buy action
@@ -426,6 +433,25 @@ function renderProducts() {
       </article>
     `;
   }).join('');
+}
+
+/**
+ * Render a product's badges as separate tags.
+ *
+ * The sheet holds them in one comma-separated cell, so a product can carry
+ * more than one ("Twin Seat, New Arrival"). Rendering is capped so a
+ * mistakenly long list cannot cover the photo — auditBadges() warns about the
+ * overflow rather than the card silently swallowing it.
+ *
+ * @param {{badges?: string[]}} product
+ * @returns {string} markup, or '' when the product has no badges
+ */
+function badgeStack(product) {
+  const badges = (product.badges || []).slice(0, MAX_BADGES_PER_PRODUCT);
+  if (!badges.length) return '';
+  return '<span class="card-badge-stack">' +
+    badges.map((b) => '<span class="card-badge">' + escapeHtml(b) + '</span>').join('') +
+    '</span>';
 }
 
 /**
@@ -986,7 +1012,17 @@ window.openProductModal = function(productId) {
   if (priceEl) priceEl.textContent = `₹${product.price.toLocaleString('en-IN')}`;
   // No MRP in the sheet — one real price per product, so the strikethrough is
   // hidden rather than filled with an invented "was" figure.
-  if (mrpEl) { mrpEl.textContent = ''; mrpEl.style.display = 'none'; }
+  // The modal mirrors the card: a "was" price only when the sheet has one.
+  if (mrpEl) {
+    if (product.originalPrice) {
+      mrpEl.innerHTML = '<s>₹' + product.originalPrice.toLocaleString('en-IN') + '</s>' +
+        '<span class="modal-discount">' + product.discountPercent + '% OFF</span>';
+      mrpEl.style.display = '';
+    } else {
+      mrpEl.textContent = '';
+      mrpEl.style.display = 'none';
+    }
+  }
   if (descEl) {
     const text = (product.description || '').trim();
     descEl.textContent = text;

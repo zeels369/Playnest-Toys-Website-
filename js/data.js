@@ -13,13 +13,21 @@
  *   3. Publish, copy the URL, paste it into PRODUCTS_CSV_URL below.
  *
  * Expected columns (order does not matter — they are matched by header name):
- *   Id, Name, Category, Price, AgeRange, WeightCapacity, Battery, Braking,
- *   Description, ImageURL, Badge, Featured, InStock
+ *   Id, Name, Category, OriginalPrice, Price, AgeRange, WeightCapacity,
+ *   Battery, Braking, Description, ImageURL, Badge, Featured, InStock
  *
  *   Category  must be one of: cars | bikes | jeeps | scooters
- *   Price     digits only, no currency symbol or separators (e.g. 6200)
+ *   Price     digits only, no currency symbol or separators (e.g. 6200).
+ *             This is always the price actually charged.
+ *   OriginalPrice  optional. The pre-discount price. Shown struck through
+ *             beside Price, with the saving as a "% OFF" tag. Ignored unless
+ *             it is a number GREATER than Price, so a blank, equal or lower
+ *             value simply shows the plain price and no product can display
+ *             a discount it does not have.
  *   InStock   TRUE or FALSE
- *   Badge     leave blank for no badge
+ *   Badge     leave blank for no badge. Accepts SEVERAL badges separated by
+ *             commas ("Bestseller, New Arrival"); each renders as its own
+ *             tag. A "Badges" heading works identically.
  *   Featured  TRUE lifts the product to the top under the default sort
  *   Description  free text shown in the Quick View modal; blank hides the block
  *   ImageURL  a path relative to the site root (images/products/…) or a full URL
@@ -162,7 +170,26 @@ function rowsToProducts(rows) {
     if (!name) return null;
 
     // Strip anything that is not a digit so "₹6,200" and "6200" both work.
-    const price = parseInt(col(row, 'Price').replace(/[^0-9]/g, ''), 10);
+    const num = (v) => parseInt(v.replace(/[^0-9]/g, ''), 10);
+    const price = num(col(row, 'Price'));
+    const wasPrice = num(col(row, 'OriginalPrice'));
+
+    // A strikethrough is a savings claim, so it is honoured only when the
+    // sheet proves one: a real number strictly above the selling price.
+    // Blank, equal, lower or malformed all fall back to the plain price.
+    const originalPrice =
+      Number.isFinite(wasPrice) && Number.isFinite(price) && wasPrice > price
+        ? wasPrice
+        : null;
+
+    // One cell, any number of badges. "Twin Seat, New Arrival" becomes two
+    // tags; a single value still becomes one, so every existing row keeps
+    // working untouched. Empty segments left by a stray comma are dropped
+    // rather than rendered as an empty tag.
+    const badges = (col(row, 'Badges') || col(row, 'Badge'))
+      .split(',')
+      .map((b) => b.trim())
+      .filter(Boolean);
 
     const stockRaw = col(row, 'InStock').toUpperCase();
     // Anything other than an explicit FALSE/NO/0 counts as in stock, so a blank
@@ -174,13 +201,18 @@ function rowsToProducts(rows) {
       name,
       category: (col(row, 'Category') || 'bikes').toLowerCase(),
       price: Number.isFinite(price) ? price : 0,
+      originalPrice,
+      // Whole-number percentage saved. Null when there is no discount.
+      discountPercent: originalPrice
+        ? Math.round(((originalPrice - price) / originalPrice) * 100)
+        : null,
       ageRange: col(row, 'AgeRange'),
       weightCapacity: col(row, 'WeightCapacity'),
       battery: col(row, 'Battery'),
       braking: col(row, 'Braking'),
       description: col(row, 'Description'),
       image: col(row, 'ImageURL'),
-      badge: col(row, 'Badge'),
+      badges,
       // Same permissive rule as InStock: only an explicit TRUE promotes a
       // product, so a blank cell never silently features something.
       featured: ['TRUE', 'YES', '1'].includes(col(row, 'Featured').toUpperCase()),
@@ -248,17 +280,44 @@ async function loadProducts() {
    Where a criterion TIES, the rule is to leave both blank and raise it — never
    to pick a winner silently.
    ========================================================================== */
+/** How many badges one card can carry before it stops reading as a highlight. */
+const MAX_BADGES_PER_PRODUCT = 2;
+
 function auditBadges(products) {
   const issues = [];
-  const badged = products.filter((p) => p.badge);
+  const badged = products.filter((p) => p.badges && p.badges.length);
+
+  // Every (product, badge) pair, so a product wearing two badges is checked
+  // once per badge rather than once per product.
+  const pairs = [];
+  badged.forEach((p) => p.badges.forEach((b) => pairs.push({ product: p, badge: b })));
 
   // 1. The same badge text on more than one product.
   const byBadge = {};
-  badged.forEach((p) => { (byBadge[p.badge] = byBadge[p.badge] || []).push(p.name); });
-  Object.entries(byBadge).forEach(([badge, names]) => {
-    if (names.length > 1) {
-      issues.push('Badge "' + badge + '" is on ' + names.length + ' products (' +
-        names.join(', ') + '). Badges are catalogue-wide — keep one.');
+  pairs.forEach(({ product, badge }) => {
+    const key = badge.toLowerCase();
+    (byBadge[key] = byBadge[key] || { label: badge, names: [] }).names.push(product.name);
+  });
+  Object.values(byBadge).forEach(({ label, names }) => {
+    const unique = [...new Set(names)];
+    if (unique.length > 1) {
+      issues.push('Badge "' + label + '" is on ' + unique.length + ' products (' +
+        unique.join(', ') + '). Badges are catalogue-wide — keep one.');
+    }
+  });
+
+  // 2. The same badge twice on ONE product, and overloaded cards. Only
+  //    possible now that a single cell can hold a list.
+  badged.forEach((p) => {
+    const seen = p.badges.map((b) => b.toLowerCase());
+    if (new Set(seen).size !== seen.length) {
+      issues.push('"' + p.name + '" repeats a badge (' + p.badges.join(', ') +
+        '). Remove the duplicate.');
+    }
+    if (p.badges.length > MAX_BADGES_PER_PRODUCT) {
+      issues.push('"' + p.name + '" carries ' + p.badges.length + ' badges (' +
+        p.badges.join(', ') + '). Keep it to ' + MAX_BADGES_PER_PRODUCT +
+        ' — more than that and none of them stand out.');
     }
   });
 
@@ -269,34 +328,43 @@ function auditBadges(products) {
     const cheapest = products.filter((p) => p.price === min);
     const priciest = products.filter((p) => p.price === max);
 
-    const isValue = (p) => /best value|value pick/i.test(p.badge);
-    const isTop = (p) => /premium|top of range|flagship/i.test(p.badge);
+    const isValue = (b) => /best value|value pick/i.test(b);
+    const isTop = (b) => /premium|top of range|flagship/i.test(b);
 
-    // 2. Superlative badges the numbers contradict.
-    badged.filter(isValue).forEach((p) => {
-      if (p.price !== min) {
-        issues.push('"' + p.name + '" carries "' + p.badge + '" at ' + p.price +
+    // 3. Superlative badges the numbers contradict — checked per badge, so a
+    //    product tagged "Twin Seat, Premium" is still caught on the Premium.
+    pairs.forEach(({ product, badge }) => {
+      if (isValue(badge) && product.price !== min) {
+        issues.push('"' + product.name + '" carries "' + badge + '" at ' + product.price +
           ', but ' + min + ' (' + cheapest.map((c) => c.name).join(', ') + ') is cheaper.');
       }
-    });
-    badged.filter(isTop).forEach((p) => {
-      if (p.price !== max) {
-        issues.push('"' + p.name + '" carries "' + p.badge + '" at ' + p.price +
+      if (isTop(badge) && product.price !== max) {
+        issues.push('"' + product.name + '" carries "' + badge + '" at ' + product.price +
           ', but ' + max + ' (' + priciest.map((c) => c.name).join(', ') + ') is higher.');
       }
     });
 
-    // 3. Ties on a superlative criterion — flag, do not guess a winner.
-    if (cheapest.length > 1 && badged.some(isValue)) {
+    // 4. Ties on a superlative criterion — flag, never guess a winner.
+    const anyValue = pairs.some(({ badge }) => isValue(badge));
+    const anyTop = pairs.some(({ badge }) => isTop(badge));
+    if (cheapest.length > 1 && anyValue) {
       issues.push(cheapest.length + ' products tie at the lowest price (' +
         cheapest.map((c) => c.name).join(', ') +
         '). A value badge cannot be assigned without a tiebreak — leave blank and decide deliberately.');
     }
-    if (priciest.length > 1 && badged.some(isTop)) {
+    if (priciest.length > 1 && anyTop) {
       issues.push(priciest.length + ' products tie at the highest price (' +
         priciest.map((c) => c.name).join(', ') +
         '). A top-of-range badge cannot be assigned without a tiebreak — leave blank and decide deliberately.');
     }
+
+    // 5. A discount badge on a product with no discount in the sheet.
+    pairs.forEach(({ product, badge }) => {
+      if (/sale|off|deal|discount/i.test(badge) && !product.originalPrice) {
+        issues.push('"' + product.name + '" carries "' + badge +
+          '" but has no OriginalPrice, so no saving is shown. Fill OriginalPrice or drop the badge.');
+      }
+    });
   }
 
   if (issues.length) {

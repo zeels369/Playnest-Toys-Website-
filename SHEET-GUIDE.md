@@ -35,14 +35,15 @@ heading text, so you can drag columns around safely. Do not rename the headings.
 | **Id** | Internal reference | Must be unique. Never reuse an id. If left blank the site invents one, but a stable id is better. |
 | **Name** | The product title on the card and in the popup | |
 | **Category** | Which filter tab the product appears under | Must be **exactly** one of the four values below. |
-| **Price** | The price shown on the card | **Digits only** — `6200`, not `₹6,200`. The site adds the ₹ and the commas. |
+| **Price** | The price you actually charge | **Digits only** — `6200`, not `₹6,200`. The site adds the ₹ and the commas. |
+| **OriginalPrice** | The "was" price, struck through | Optional. **Leave blank when there is no discount.** Digits only. See below. |
 | **AgeRange** | The age chip on the card | Free text, e.g. `2–5 yrs`. |
 | **WeightCapacity** | The weight chip on the card | Free text, e.g. `30Kg Max`. |
 | **Battery** | The battery chip on the card | Free text, e.g. `12V`. |
 | **Braking** | The "Braking" row in the popup | e.g. `Foot Race`, `Hand Race & Foot Break`, `4x4 Motor Wheel`. |
 | **Description** | The paragraph in the popup | Free text. **Leave blank and the paragraph is hidden** — no empty space. |
 | **ImageURL** | The product photo | Either `images/products/name.jpg` (a file in the site) or a full `https://…` link. |
-| **Badge** | The small coloured label on the card | Leave blank for no badge. See the badge rules below. |
+| **Badge** | The small coloured label(s) on the card | Leave blank for none. **Separate several with commas** — `Twin Seat, New Arrival` shows two. See the badge rules below. |
 | **Featured** | Promotes the product | `TRUE` lifts it to the top of the grid under the default sort and gives it a gold outline. `FALSE` or blank for normal. |
 | **InStock** | Whether it can be bought | `TRUE` = normal. `FALSE` = see below. |
 
@@ -67,6 +68,26 @@ Capitals are fine (`Bikes` works) — anything else is not.
 
 ---
 
+## Discounts
+
+Fill **OriginalPrice** with the old price and leave **Price** as what you
+actually charge. The card then shows:
+
+> **₹14,500**  ~~₹17,500~~  `17% OFF`
+
+The percentage is worked out for you — there is no column for it, and no way
+for it to disagree with the prices.
+
+**The discount only appears when OriginalPrice is a number larger than Price.**
+Blank, equal, smaller, or text all fall back to the plain single price. That is
+deliberate: it means a typo can never put a fake "was" price in front of a
+customer. To end a sale, clear the OriginalPrice cell.
+
+All 48 products currently have this blank, so nothing shows a discount until
+you fill one in.
+
+---
+
 ## Out of stock
 
 Set **InStock** to `FALSE` and the product:
@@ -86,7 +107,9 @@ Set it back to `TRUE` and everything reverts.
 Badges are **catalogue-wide**. The grid shows every category together by default,
 so two products wearing the same badge sit side by side and look like a mistake.
 
-1. **One product per badge.** Never two "Best Value".
+1. **One product per badge.** Never two "Best Value" — this holds across
+   *all* badge slots, so a product's second badge cannot reuse another
+   product's first.
 2. **Superlatives must be true across the whole catalogue** — not just within a
    category. "Best Value" belongs to the cheapest product you sell, full stop.
 3. **If two products tie, leave both blank.** Do not pick one. A tie means the
@@ -94,13 +117,21 @@ so two products wearing the same badge sit side by side and look like a mistake.
    another product is not informative. Decide on a real tiebreak first.
 4. Keep it to **3–5 badges** across the whole catalogue. A badge on everything is
    a badge on nothing.
+5. **At most two badges on one product.** A third is ignored by the card and
+   reported in the console — three labels stacked on a photo stop reading as
+   highlights.
+
+To give a product two badges, put both in the one **Badge** cell separated by a
+comma: `Twin Seat, New Arrival`. Spacing does not matter.
 
 Prefer badges that state a **fact you can check** — "Twin Seat", "Smoke Effect",
 "Biggest 4×4" — over opinions like "Top Seller", which nobody can verify.
 
 **The site checks this for you.** Open the site, press F12, and look at the
-Console tab. If a badge is duplicated or a superlative is contradicted by the
-prices, it prints a warning naming the products involved.
+Console tab. It warns when a badge is duplicated across products, repeated on
+one product, when there are more than two on a card, when a superlative is
+contradicted by the prices, when two products tie on a superlative, and when a
+"Sale"-type badge sits on a product with no OriginalPrice.
 
 ---
 
@@ -112,6 +143,12 @@ note the developer gave you. Wait, then hard-refresh (Ctrl+F5).
 **A product vanished.** Check the Category spelling against the four values above.
 
 **The price shows as ₹0.** The Price cell has something other than digits in it.
+
+**My discount isn't showing.** OriginalPrice must be a plain number *larger*
+than Price. `₹17,500` works; `17.5k` does not.
+
+**Only one of my two badges is showing.** They must be in the same cell,
+separated by a comma. Two badges in two different columns will not work.
 
 **The whole catalogue is missing.** The site falls back to its bundled copy
 automatically, so this should be rare. If you see "Catalogue temporarily
