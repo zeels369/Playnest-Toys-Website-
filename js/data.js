@@ -215,7 +215,12 @@ function rowsToProducts(rows) {
       battery: col(row, 'Battery'),
       braking: col(row, 'Braking'),
       description: col(row, 'Description'),
-      image: col(row, 'ImageURL'),
+      // Windows file paths get pasted into this column ("images\products\x.jpg")
+      // whenever someone copies a path from Explorer. A URL needs forward
+      // slashes, and a browser silently treats a backslash path as a broken
+      // relative URL — the product renders with an empty image box and no error
+      // anywhere. Normalizing here means the sheet tolerates either form.
+      image: col(row, 'ImageURL').replace(/\\/g, '/'),
       badges,
       // Same permissive rule as InStock: only an explicit TRUE promotes a
       // product, so a blank cell never silently features something.
