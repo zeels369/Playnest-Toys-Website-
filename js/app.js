@@ -23,6 +23,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   console.info('[playnest] loaded ' + products.length + ' products from ' + (source || 'no source'));
   if (!products.length) showCatalogUnavailable();
   auditBadges(products);
+  emitProductSchema(products);
 
   initCategoryCounts();
   initCatalog();
@@ -195,8 +196,16 @@ function initCategoryCounts() {
     const img = card.querySelector('.category-photo img');
     if (!img) return;
 
+    // The tile's visible name ("Ride-On Cars"), used to describe whichever photo
+    // lands in it. The markup ships alt="" with a transparent placeholder, and
+    // swapping only src would leave a real photo permanently undescribed — the
+    // one <img> on the page a screen reader could not announce.
+    const label = card.querySelector('.category-name');
+    const catName = label ? label.textContent.trim() : catId;
+
     if (flagship) {
       img.src = flagship.image;
+      img.alt = catName + ' — ' + flagship.name;
       card.classList.remove('category-card--empty');
       return;
     }
@@ -211,6 +220,7 @@ function initCategoryCounts() {
     const probe = new Image();
     probe.onload = () => {
       img.src = fallback;
+      img.alt = catName;
       card.classList.add('category-card--stock-art');
     };
     // No file for this category: the plain dashed slot remains.
@@ -433,6 +443,89 @@ function renderProducts() {
       </article>
     `;
   }).join('');
+}
+
+/**
+ * Emit Product/Offer structured data for the whole catalogue.
+ *
+ * Built from the loaded products rather than written by hand, so it can never
+ * drift from what the sheet says — a schema price that disagrees with the
+ * visible price is worse than no schema, and is the kind of thing Google
+ * issues manual actions over.
+ *
+ * One ItemList wrapping all products, rather than 48 separate blocks: it is
+ * the honest description of a single page listing many products, and it keeps
+ * the DOM to one script tag.
+ *
+ * KNOWN LIMIT: this runs after the catalogue fetch, so it inherits exactly the
+ * weakness the SEO audit flagged — a crawler that does not execute JS, or that
+ * abandons the render queue, sees no product schema at all. Baking this into
+ * the HTML at deploy time is the real fix and needs a build step. Emitting it
+ * client-side is strictly better than nothing (Google does render JS) but it
+ * is not equivalent to server-rendered markup.
+ *
+ * `image` and `url` are omitted: schema.org wants absolute URLs and there is
+ * no hostname yet. A relative path there is silently dropped by consumers; a
+ * made-up absolute one is a false claim. Both are added with the canonical tag
+ * once a domain exists — see SEO-NOTES.md.
+ *
+ * @param {Array} products the loaded catalogue
+ */
+function emitProductSchema(products) {
+  if (!products || !products.length) return;
+
+  const schema = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: 'Playnest Toys catalogue',
+    numberOfItems: products.length,
+    itemListElement: products.map((p, i) => {
+      const offer = {
+        '@type': 'Offer',
+        price: String(p.price),
+        priceCurrency: 'INR',
+        availability: p.inStock
+          ? 'https://schema.org/InStock'
+          : 'https://schema.org/OutOfStock'
+      };
+
+      const product = {
+        '@type': 'Product',
+        name: p.name,
+        category: p.category,
+        offers: offer
+      };
+
+      // Only state what the sheet actually carries. A blank cell must not
+      // become an empty string in the markup — an absent property is correct,
+      // an empty one is a claim that the value is nothing.
+      if (p.description) product.description = p.description;
+      if (p.battery || p.ageRange || p.weightCapacity) {
+        product.additionalProperty = [
+          ['Battery', p.battery],
+          ['Recommended age', p.ageRange],
+          ['Weight capacity', p.weightCapacity]
+        ]
+          .filter(([, value]) => value)
+          .map(([name, value]) => ({
+            '@type': 'PropertyValue',
+            name: name,
+            value: value
+          }));
+      }
+
+      return { '@type': 'ListItem', position: i + 1, item: product };
+    })
+  };
+
+  const el = document.createElement('script');
+  el.type = 'application/ld+json';
+  el.id = 'productSchema';
+  el.textContent = JSON.stringify(schema);
+
+  const existing = document.getElementById('productSchema');
+  if (existing) existing.remove();
+  document.head.appendChild(el);
 }
 
 /**

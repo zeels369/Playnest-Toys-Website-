@@ -1,0 +1,16 @@
+# Playnest Toys — crawl policy
+#
+# Everything on this site is public catalogue content meant to be found, so
+# crawling is fully open. There is no admin area, no user accounts and no
+# checkout to keep out of an index.
+
+User-agent: *
+Allow: /
+
+# The product photos are the point of a toy catalogue — image search is a real
+# source of traffic here, so they are explicitly not excluded.
+
+# Sitemap: add the absolute URL once the site has a domain, e.g.
+#   Sitemap: https://playnesttoys.com/sitemap.xml
+# A sitemap must list absolute URLs, so it cannot be written until the
+# hostname is decided. See SEO-NOTES.md.

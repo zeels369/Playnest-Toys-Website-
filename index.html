@@ -25,6 +25,33 @@
   <!-- Inline SVG favicon (brand coral wheel) — avoids a 404 on /favicon.ico -->
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='15' fill='%23E63950'/%3E%3Ccircle cx='16' cy='16' r='7' fill='%23FAFAF7'/%3E%3Ccircle cx='16' cy='16' r='3' fill='%23FFC93C'/%3E%3C/svg%3E">
 
+  <!-- Home-screen icon (iOS ignores the SVG favicon above) and web manifest. -->
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="manifest" href="manifest.json">
+
+  <!-- Structured data: the shop itself.
+       Deliberately omits "url", "logo" and "image". Schema.org requires those
+       to be absolute, and this site has no domain yet — a placeholder or a
+       relative path there is worse than the field's absence, because a wrong
+       absolute URL is a claim about a page that does not exist. Add them, plus
+       the canonical tag and sitemap, in one pass once the hostname is decided.
+       See SEO-NOTES.md. Per-product Product/Offer schema is emitted by
+       js/app.js after the catalogue loads, since it is sheet-driven. -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Store",
+    "name": "Playnest Toys",
+    "description": "Battery-powered electric ride-on cars, bikes, jeeps and scooters for children, sold direct to customers across India with ordering over WhatsApp.",
+    "slogan": "Little Wheels, Big Smiles",
+    "areaServed": {
+      "@type": "Country",
+      "name": "India"
+    },
+    "currenciesAccepted": "INR"
+  }
+  </script>
+
   <!-- Stylesheet -->
   <link rel="stylesheet" href="css/style.css">
 
@@ -294,7 +321,14 @@
        ========================================================================= -->
   <section class="catalog-section" id="catalog">
     <div class="container">
-      
+
+      <!-- The catalogue had no heading of its own: the page went from the
+           category H2 straight into filter controls, leaving the largest
+           section on the site unlabelled for crawlers and screen readers
+           alike. Visually hidden because the toolbar already reads as the
+           section start to a sighted visitor. -->
+      <h2 class="sr-only">Shop All Ride-On Toys</h2>
+
       <!-- Catalog Header & Toolbar -->
       <div class="catalog-toolbar">
         
@@ -396,6 +430,12 @@
        ========================================================================= -->
   <section class="trust-section" id="trust">
     <div class="container">
+
+      <!-- Same gap as the catalogue: this section's items are <h4>, which
+           jumped two levels from the page's only H2. This heading restores
+           the sequence and names the section. -->
+      <h2 class="sr-only">Why Families Choose Playnest</h2>
+
       <div class="trust-grid">
         
         <!-- Trust 1 -->

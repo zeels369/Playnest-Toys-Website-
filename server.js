@@ -12,6 +12,11 @@ const mimeTypes = {
   '.css': 'text/css; charset=UTF-8',
   '.json': 'application/json',
   '.csv': 'text/csv; charset=UTF-8',
+  // robots.txt must be served as text/plain — some crawlers reject any other
+  // type, and without this it falls through to application/octet-stream.
+  '.txt': 'text/plain; charset=UTF-8',
+  '.xml': 'application/xml; charset=UTF-8',
+  '.webmanifest': 'application/manifest+json',
   '.png': 'image/png',
   '.jpg': 'image/jpeg',
   '.jpeg': 'image/jpeg',
