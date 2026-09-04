@@ -697,17 +697,29 @@ function initScrollHero() {
 
   const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  // --- Format selection (synchronous, one-off) ---------------------------
-  function supportsWebp() {
-    try {
-      const c = document.createElement('canvas');
-      return c.toDataURL('image/webp').indexOf('data:image/webp') === 0;
-    } catch (e) {
-      return false;
-    }
+  // --- Format selection ---------------------------------------------------
+  // This has to test DECODE support, because that's the only thing the hero
+  // actually needs — the 22 frames are loaded as <img> sources and drawn with
+  // ctx.drawImage(), never encoded. canvas.toDataURL('image/webp') tests
+  // ENCODE support instead, and Safari has never implemented WebP encoding —
+  // it silently returns a PNG data URL, so that check reports false on every
+  // iPhone unconditionally. Safari has decoded WebP fine since iOS 14, so
+  // every Safari visitor was being routed to the single static poster frame
+  // with no scroll listener ever attached: the page scrolled, the vehicle
+  // never did. Loading a real (tiny, inline) WebP as an <img> and checking it
+  // actually decoded is the correct test for what this code does.
+  function detectWebpSupport() {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => resolve(img.width > 0 && img.height > 0);
+      img.onerror = () => resolve(false);
+      img.src = 'data:image/webp;base64,UklGRiIAAABXRUJQVlA4IBYAAAAwAQCdASoBAAEADsD+JaQAA3AAAAAA';
+    });
   }
 
-  const useWebp = supportsWebp();
+  // Optimistic default so a slow-to-resolve detection never blocks anything;
+  // startLoading() awaits the real result before the first frame is requested.
+  let useWebp = true;
   // Alpha WebP is ~97% supported. Rather than ship a 15 MB transparent PNG
   // sequence for the remainder, those browsers get one static poster frame.
   const FRAME_DIR = 'images/hero-frames-webp/';
@@ -828,6 +840,10 @@ function initScrollHero() {
   async function startLoading() {
     if (loadStarted) return;
     loadStarted = true;
+
+    // Resolved before any frame is requested, so frameSrc()'s first call
+    // already sees the correct value.
+    useWebp = await detectWebpSupport();
 
     sizeCanvas();
 
