@@ -46,7 +46,7 @@ const PLAYNEST_CONFIG = {
 
   // 🔴 PUBLISHED SHEET CSV URL — paste yours here.
   // Leave empty to fall back to data/products.csv bundled with the site.
-  PRODUCTS_CSV_URL: "",
+  PRODUCTS_CSV_URL: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSbFkc5ocvmSEmmeTm26XnyGK7Ig9Ur53cUcvVbvhmotteytfbXivc6ZWkiikqHSu1eQBYp0p1WEz4Y/pub?output=csv",
 
   // Local fallback, used when the sheet URL is unset or unreachable, so the
   // catalogue never renders empty.
@@ -159,9 +159,13 @@ function parseCSV(text) {
 function rowsToProducts(rows) {
   if (!rows.length) return [];
 
-  const headers = rows[0].map((h) => h.trim().toLowerCase());
+  // Header matching drops spaces as well as case, so "OriginalPrice" and a
+  // sheet owner's "Original Price" resolve to the same column instead of the
+  // second one silently reading as missing.
+  const normalize = (h) => h.trim().toLowerCase().replace(/\s+/g, '');
+  const headers = rows[0].map(normalize);
   const col = (row, name) => {
-    const idx = headers.indexOf(name.toLowerCase());
+    const idx = headers.indexOf(normalize(name));
     return idx === -1 ? '' : (row[idx] || '').trim();
   };
 
