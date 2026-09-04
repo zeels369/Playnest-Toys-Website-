@@ -840,13 +840,23 @@ function initScrollHero() {
     // Reduced motion, or no WebP support: one frame, no sequence, no scroll work.
     if (prefersReduced || !useWebp) return;
 
-    // Stream the rest in order, repainting if the user has already scrolled
-    // past the frames that have arrived.
+    // Fire every remaining frame at once instead of awaiting them one at a
+    // time. On a fast, near-zero-latency connection sequential loading is
+    // invisible, but on a real mobile network each request carries its own
+    // round trip, so 21 requests awaited in series can take several seconds
+    // end to end. Until a frame lands, nearestLoaded() keeps returning frame
+    // 0 for every scroll position past it — so on mobile the visitor sees the
+    // same static frame no matter how far they scroll, which reads as "the
+    // animation isn't happening" rather than "it's still loading". Loading
+    // all of them concurrently — the browser's own connection limit still
+    // queues what it must — and repainting after each arrival closes that gap
+    // to roughly one round trip instead of TOTAL_FRAMES of them.
+    const remaining = [];
     for (let i = 0; i < TOTAL_FRAMES; i++) {
       if (i === priority) continue;
-      await loadFrame(i);
-      if (i === currentFrameIndex) paint(i);
+      remaining.push(loadFrame(i).then(() => paint(currentFrameIndex)));
     }
+    await Promise.all(remaining);
   }
 
   /** Defer to idle so frame fetching never competes with the critical render. */
