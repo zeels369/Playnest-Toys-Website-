@@ -4,25 +4,53 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Playnest Toys — Little Wheels, Big Smiles | Electric Ride-On Toys for Kids</title>
-  <meta name="description" content="Playnest Toys sells premium battery-operated electric ride-on cars, bikes, jeeps, and scooters for kids aged 2–8 in India. Select your models and order via WhatsApp.">
+  <meta name="description" content="Playnest Toys sells premium battery-operated electric ride-on cars, bikes, jeeps, and scooters for kids aged 6–10 in India. Select your models and order via WhatsApp.">
   <meta name="keywords" content="kids electric cars, ride on toys india, battery bike for kids, 4x4 kids jeep, toy scooter, playnest toys">
   
   <!-- Open Graph Meta -->
   <meta property="og:title" content="Playnest Toys — Little Wheels, Big Smiles">
-  <meta property="og:description" content="Battery-powered electric cars, bikes, jeeps, and scooters for kids aged 2–8. WhatsApp ordering across India.">
+  <meta property="og:description" content="Battery-powered electric cars, bikes, jeeps, and scooters for kids aged 6–10. WhatsApp ordering across India.">
   <meta property="og:image" content="images/logo.jpeg">
   <meta property="og:type" content="website">
 
-  <!-- Google Fonts: Kalam, Satisfy, Caveat (Script fonts), Fredoka (Display) + Inter (Body) -->
+  <!-- Google Fonts: Fredoka (display) + Figtree (body, variable 400–700) + Caveat (script wordmark).
+       Kalam and Satisfy were loaded here but never referenced in CSS or JS — removed. -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Fredoka:wght@500;600;700&family=Inter:wght@400;500;600;700&family=Kalam:wght@400;700&family=Satisfy&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Figtree:wght@400..700&family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
 
   <!-- Theme color for mobile browser chrome (kept in sync by applyTheme() in app.js) -->
   <meta name="theme-color" content="#FAFAF7" id="themeColorMeta">
 
   <!-- Inline SVG favicon (brand coral wheel) — avoids a 404 on /favicon.ico -->
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='15' fill='%23E63950'/%3E%3Ccircle cx='16' cy='16' r='7' fill='%23FAFAF7'/%3E%3Ccircle cx='16' cy='16' r='3' fill='%23FFC93C'/%3E%3C/svg%3E">
+
+  <!-- Home-screen icon (iOS ignores the SVG favicon above) and web manifest. -->
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="manifest" href="manifest.json">
+
+  <!-- Structured data: the shop itself.
+       Deliberately omits "url", "logo" and "image". Schema.org requires those
+       to be absolute, and this site has no domain yet — a placeholder or a
+       relative path there is worse than the field's absence, because a wrong
+       absolute URL is a claim about a page that does not exist. Add them, plus
+       the canonical tag and sitemap, in one pass once the hostname is decided.
+       See SEO-NOTES.md. Per-product Product/Offer schema is emitted by
+       js/app.js after the catalogue loads, since it is sheet-driven. -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Store",
+    "name": "Playnest Toys",
+    "description": "Battery-powered electric ride-on cars, bikes, jeeps and scooters for children, sold direct to customers across India with ordering over WhatsApp.",
+    "slogan": "Little Wheels, Big Smiles",
+    "areaServed": {
+      "@type": "Country",
+      "name": "India"
+    },
+    "currenciesAccepted": "INR"
+  }
+  </script>
 
   <!-- Stylesheet -->
   <link rel="stylesheet" href="css/style.css">
@@ -71,8 +99,14 @@
       </nav>
 
       <div class="header-actions">
-        <!-- Dark Mode Toggle: sun shown in dark mode ("switch to light"),
-             moon shown in light mode ("switch to dark"). -->
+        <!-- Dark Mode Toggle.
+
+             The thumb shows the mode that is CURRENTLY ACTIVE — sun while the
+             site is light, moon while it is dark — and both destinations stay
+             visible as dim icons in the track behind it. Position and icon
+             therefore always agree, so the switch cannot be read backwards.
+             The aria-label states the ACTION ("Switch to dark mode"), which is
+             what a screen reader user needs; js/app.js keeps it in sync. -->
         <button
           type="button"
           class="theme-toggle"
@@ -82,6 +116,15 @@
           title="Switch to dark mode"
         >
           <span class="theme-toggle-track" aria-hidden="true">
+            <!-- Both options, dim, so the track itself shows what the switch
+                 chooses between. The thumb covers whichever one is active. -->
+            <svg class="theme-track-icon theme-track-icon--sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="4.2"/>
+              <path d="M12 2.4v2.4M12 19.2v2.4M4.22 4.22l1.7 1.7M18.08 18.08l1.7 1.7M2.4 12h2.4M19.2 12h2.4M4.22 19.78l1.7-1.7M18.08 5.92l1.7-1.7"/>
+            </svg>
+            <svg class="theme-track-icon theme-track-icon--moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20.5 14.6A8.6 8.6 0 0 1 9.4 3.5a8.6 8.6 0 1 0 11.1 11.1z"/>
+            </svg>
             <span class="theme-toggle-thumb">
               <!-- Sun -->
               <svg class="theme-icon theme-icon--sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -101,14 +144,20 @@
 
   <!-- =========================================================================
        CINEMATIC SCROLL-DRIVEN HERO (4-BEAT SEQUENCE)
-       Scroll-scrubbed video frame sequence drawn to a <canvas>.
-       Frames: 22 stills from videos/hero-source.mp4, served as WebP with a
-       JPEG fallback (see js/app.js -> initScrollHero).
+       Scroll-scrubbed frame sequence drawn to a <canvas>.
+       Frames: 22 TRANSPARENT stills from videos/hero-jeep-alpha.mp4, served as
+       WebP-with-alpha over a CSS stage (see js/app.js -> initScrollHero).
        ========================================================================= -->
   <section class="hero-scroll-container" id="hero">
     <div class="hero-sticky-viewport" id="heroViewport">
 
-      <!-- Scroll-scrubbed frame canvas (fills the viewport behind the overlays) -->
+      <!-- Themed stage behind the transparent subject. Pure CSS, so the hero
+           re-themes without needing a second frame set. The radial glow gives
+           the black jeep a silhouette to sit against in dark mode. -->
+      <div class="hero-stage" aria-hidden="true"></div>
+
+      <!-- Scroll-scrubbed frame canvas. Frames are WebP WITH ALPHA, so the
+           canvas composites the child + jeep straight onto the stage above. -->
       <canvas class="hero-frame-canvas" id="heroCanvas" aria-hidden="true"></canvas>
 
       <!-- Shown until the first frame has been decoded and painted -->
@@ -116,9 +165,9 @@
         <div class="hero-loader-spinner"></div>
       </div>
 
-      <!-- Readability scrim. Opacity stops are derived from measured frame
-           luminance so the text band never drops below WCAG AA against white
-           type at ANY scroll position — see css/style.css. -->
+      <!-- Readability scrim. Sits ABOVE the subject and is kept light, because
+           the stage behind is already a controlled brand colour rather than
+           unpredictable video luminance — see css/style.css. -->
       <div class="hero-scrim" aria-hidden="true"></div>
 
       <!-- Beat Progression Indicator Dots -->
@@ -175,7 +224,7 @@
           </div>
 
           <p class="hero-subtitle" id="heroSubtitle">
-            Safe, thrilling battery-powered ride-on cars, bikes, jeeps & scooters for kids aged 2–8.
+            Safe, thrilling battery-powered ride-on cars, bikes, jeeps & scooters for kids aged 6–10.
           </p>
           <p class="hero-warm-note">
             "Crafted for pure childhood joy — because the best memories are made on little wheels."
@@ -220,68 +269,46 @@
         
         <!-- Category 1: Cars -->
         <div class="category-card" data-category="cars" tabindex="0" role="button" aria-label="Filter Ride-On Cars">
-          <div class="category-icon-box">
-            <!-- Custom Car Line SVG -->
-            <svg class="category-icon-svg" viewBox="0 0 24 24">
-              <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9L2 12v4c0 .6.4 1 1 1h2"/>
-              <circle cx="7" cy="17" r="2"/>
-              <circle cx="17" cy="17" r="2"/>
-              <path d="M9 17h6"/>
-            </svg>
+          <div class="category-photo" aria-hidden="true">
+            <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" loading="lazy">
           </div>
-          <h3 class="category-name">Ride-On Cars</h3>
-          <span class="category-count" id="count-cars">3 Models</span>
+          <div class="category-label">
+            <h3 class="category-name">Ride-On Cars</h3>
+            <span class="category-count" id="count-cars">3 Models</span>
+          </div>
         </div>
 
         <!-- Category 2: Bikes -->
         <div class="category-card" data-category="bikes" tabindex="0" role="button" aria-label="Filter Bikes & Trikes">
-          <div class="category-icon-box">
-            <!-- Custom Bike Line SVG -->
-            <svg class="category-icon-svg" viewBox="0 0 24 24">
-              <circle cx="5.5" cy="17.5" r="3.5"/>
-              <circle cx="18.5" cy="17.5" r="3.5"/>
-              <path d="M15 6h-3l-2.5 5.5H15l2 3h3.5"/>
-              <path d="M5.5 17.5l4-7.5h5"/>
-              <path d="M12 9l-2-3H7"/>
-            </svg>
+          <div class="category-photo" aria-hidden="true">
+            <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" loading="lazy">
           </div>
-          <h3 class="category-name">Bikes & Trikes</h3>
-          <span class="category-count" id="count-bikes">3 Models</span>
+          <div class="category-label">
+            <h3 class="category-name">Bikes & Trikes</h3>
+            <span class="category-count" id="count-bikes">3 Models</span>
+          </div>
         </div>
 
         <!-- Category 3: Jeeps -->
         <div class="category-card" data-category="jeeps" tabindex="0" role="button" aria-label="Filter Jeeps & UTVs">
-          <div class="category-icon-box">
-            <!-- Custom Jeep 4x4 Line SVG -->
-            <svg class="category-icon-svg" viewBox="0 0 24 24">
-              <rect x="3" y="8" width="18" height="8" rx="2"/>
-              <path d="M5 8V5c0-.6.4-1 1-1h12c.6 0 1 .4 1 1v3"/>
-              <line x1="8" y1="4" x2="8" y2="8"/>
-              <line x1="16" y1="4" x2="16" y2="8"/>
-              <circle cx="7" cy="17" r="2.5"/>
-              <circle cx="17" cy="17" r="2.5"/>
-              <line x1="9.5" y1="17" x2="14.5" y2="17"/>
-            </svg>
+          <div class="category-photo" aria-hidden="true">
+            <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" loading="lazy">
           </div>
-          <h3 class="category-name">Jeeps & UTVs</h3>
-          <span class="category-count" id="count-jeeps">4 Models</span>
+          <div class="category-label">
+            <h3 class="category-name">Jeeps & UTVs</h3>
+            <span class="category-count" id="count-jeeps">4 Models</span>
+          </div>
         </div>
 
         <!-- Category 4: Scooters -->
         <div class="category-card" data-category="scooters" tabindex="0" role="button" aria-label="Filter Scooters">
-          <div class="category-icon-box">
-            <!-- Custom Scooter Line SVG -->
-            <svg class="category-icon-svg" viewBox="0 0 24 24">
-              <circle cx="6" cy="18" r="2.5"/>
-              <circle cx="18" cy="18" r="2.5"/>
-              <path d="M18 15.5l-3-6.5h-3"/>
-              <path d="M15 9V4h-3"/>
-              <path d="M8.5 18H15.5"/>
-              <path d="M6 15.5c1-3 3.5-4.5 6.5-4.5"/>
-            </svg>
+          <div class="category-photo" aria-hidden="true">
+            <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" loading="lazy">
           </div>
-          <h3 class="category-name">Scooters</h3>
-          <span class="category-count" id="count-scooters">2 Models</span>
+          <div class="category-label">
+            <h3 class="category-name">Scooters</h3>
+            <span class="category-count" id="count-scooters">2 Models</span>
+          </div>
         </div>
 
       </div>
@@ -294,7 +321,14 @@
        ========================================================================= -->
   <section class="catalog-section" id="catalog">
     <div class="container">
-      
+
+      <!-- The catalogue had no heading of its own: the page went from the
+           category H2 straight into filter controls, leaving the largest
+           section on the site unlabelled for crawlers and screen readers
+           alike. Visually hidden because the toolbar already reads as the
+           section start to a sighted visitor. -->
+      <h2 class="sr-only">Shop All Ride-On Toys</h2>
+
       <!-- Catalog Header & Toolbar -->
       <div class="catalog-toolbar">
         
@@ -396,6 +430,13 @@
        ========================================================================= -->
   <section class="trust-section" id="trust">
     <div class="container">
+
+      <!-- Same gap as the catalogue: this section had no heading, and its
+           items sat at h4 — two levels below the page's only h2. This names
+           the section; the items below are now h3, so the outline runs
+           h1 → h2 → h3 with no skipped level. -->
+      <h2 class="sr-only">Why Families Choose Playnest</h2>
+
       <div class="trust-grid">
         
         <!-- Trust 1 -->
@@ -406,7 +447,7 @@
             </svg>
           </div>
           <div class="trust-text-box">
-            <h4>Dual & 4x4 Motors</h4>
+            <h3>Dual & 4x4 Motors</h3>
             <p>12V rechargeable batteries with smooth high-torque power for all terrains.</p>
           </div>
         </div>
@@ -419,7 +460,7 @@
             </svg>
           </div>
           <div class="trust-text-box">
-            <h4>Parent Remote Safety</h4>
+            <h3>Parent Remote Safety</h3>
             <p>Full 2.4G wireless remote override, emergency brake, and safety harness.</p>
           </div>
         </div>
@@ -435,7 +476,7 @@
             </svg>
           </div>
           <div class="trust-text-box">
-            <h4>Doorstep India Delivery</h4>
+            <h3>Doorstep India Delivery</h3>
             <p>Carefully packed in heavy-duty foam cushioning to reach you damage-free.</p>
           </div>
         </div>
@@ -448,7 +489,7 @@
             </svg>
           </div>
           <div class="trust-text-box">
-            <h4>WhatsApp Video Support</h4>
+            <h3>WhatsApp Video Support</h3>
             <p>1-on-1 assembly help, video guides, and spare parts assistance anytime.</p>
           </div>
         </div>
@@ -475,7 +516,7 @@
         </div>
 
         <div>
-          <h4 class="footer-heading">Ride Categories</h4>
+          <h2 class="footer-heading">Ride Categories</h2>
           <ul class="footer-links">
             <li><a href="#catalog" onclick="filterCategoryFromNav('cars')">Ride-On Cars</a></li>
             <li><a href="#catalog" onclick="filterCategoryFromNav('bikes')">Bikes & Cruisers</a></li>
@@ -485,7 +526,7 @@
         </div>
 
         <div>
-          <h4 class="footer-heading">How To Order</h4>
+          <h2 class="footer-heading">How To Order</h2>
           <p class="footer-note">
             Add your favourite ride-ons to the cart and click checkout to send your consolidated order via WhatsApp!
           </p>
@@ -546,7 +587,7 @@
           <!-- src/alt are overwritten by openProductModal() in js/app.js before the
                modal is ever shown. The default points at a real catalog asset (already
                warm in cache from the grid) so no broken-image box can appear. -->
-          <img src="images/products/car-ferrari-f8.svg" alt="" class="modal-product-img" id="modalImg">
+          <img src="images/products/car-f8-ferrari.jpg" alt="" class="modal-product-img" id="modalImg">
         </div>
 
         <div class="modal-info-col">
@@ -575,12 +616,8 @@
                 <td id="modalSpecBattery"></td>
               </tr>
               <tr>
-                <td>Motor Type</td>
-                <td id="modalSpecMotors"></td>
-              </tr>
-              <tr>
-                <td>Product SKU</td>
-                <td id="modalSpecSku"></td>
+                <td>Braking</td>
+                <td id="modalSpecBraking"></td>
               </tr>
             </tbody>
           </table>

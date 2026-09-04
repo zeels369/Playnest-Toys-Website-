@@ -9,7 +9,7 @@
 // In-Memory Cart State (Array of { productId, quantity })
 let cart = [];
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   // 0. Wire up the dark mode toggle (theme itself is already applied by the
   //    inline bootstrap in index.html, before first paint)
   initThemeToggle();
@@ -17,10 +17,15 @@ document.addEventListener('DOMContentLoaded', () => {
   // 1. Initialize Header, Footer, and Floating WhatsApp Action Links
   initWhatsAppLinks();
 
-  // 2. Initialize Category Counts
-  initCategoryCounts();
+  // 3. Fetch the catalogue from the published sheet, THEN render.
+  //    Everything below depends on PLAYNEST_PRODUCTS being populated.
+  const { products, source } = await loadProducts();
+  console.info('[playnest] loaded ' + products.length + ' products from ' + (source || 'no source'));
+  if (!products.length) showCatalogUnavailable();
+  auditBadges(products);
+  emitProductSchema(products);
 
-  // 3. Initialize Catalog Filter & Grid
+  initCategoryCounts();
   initCatalog();
 
   // 4. Initialize Scroll-Driven Hero Sequence
@@ -34,6 +39,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 7. Header Scroll Shadow
   initHeaderScroll();
+
+  // 8. Scroll reveals for section content
+  initScrollReveals();
 });
 
 /* ==========================================================================
@@ -177,6 +185,49 @@ function initCategoryCounts() {
   const scooterCountEl = document.getElementById('count-scooters');
   if (scooterCountEl) scooterCountEl.textContent = `${counts.scooters} Models`;
 
+  // Each category tile shows a real product photo rather than a line icon.
+  // The flagship (highest-priced in that category) stands in for the category,
+  // pulled from the same CSV as everything else — so a catalogue change updates
+  // these automatically and no image path is hardcoded here.
+  document.querySelectorAll('.category-card').forEach(card => {
+    const catId = card.getAttribute('data-category');
+    const inCat = PLAYNEST_PRODUCTS.filter(p => p.category === catId && p.image);
+    const flagship = inCat.sort((x, y) => y.price - x.price)[0];
+    const img = card.querySelector('.category-photo img');
+    if (!img) return;
+
+    // The tile's visible name ("Ride-On Cars"), used to describe whichever photo
+    // lands in it. The markup ships alt="" with a transparent placeholder, and
+    // swapping only src would leave a real photo permanently undescribed — the
+    // one <img> on the page a screen reader could not announce.
+    const label = card.querySelector('.category-name');
+    const catName = label ? label.textContent.trim() : catId;
+
+    if (flagship) {
+      img.src = flagship.image;
+      img.alt = catName + ' — ' + flagship.name;
+      card.classList.remove('category-card--empty');
+      return;
+    }
+
+    // No products in this category yet. Fall back to a stock tile image at a
+    // conventional path — images/categories/<id>.jpg — so an empty category can
+    // still look finished. This is a CONVENTION, not a per-category hardcode:
+    // any future empty category picks up its own file automatically.
+    // The 'coming soon' label stays, so the tile never implies stock we lack.
+    card.classList.add('category-card--empty');
+    const fallback = 'images/categories/' + catId + '.jpg';
+    const probe = new Image();
+    probe.onload = () => {
+      img.src = fallback;
+      img.alt = catName;
+      card.classList.add('category-card--stock-art');
+    };
+    // No file for this category: the plain dashed slot remains.
+    probe.onerror = () => {};
+    probe.src = fallback;
+  });
+
   // Attach click listener to category strip cards
   const categoryCards = document.querySelectorAll('.category-card');
   categoryCards.forEach(card => {
@@ -288,14 +339,21 @@ function renderProducts() {
     const matchesSearch = !searchQuery || 
       p.name.toLowerCase().includes(searchQuery) ||
       p.category.toLowerCase().includes(searchQuery) ||
-      p.ageRange.toLowerCase().includes(searchQuery) ||
-      p.motors.toLowerCase().includes(searchQuery) ||
-      (p.features && p.features.some(f => f.toLowerCase().includes(searchQuery)));
+      (p.ageRange || '').toLowerCase().includes(searchQuery) ||
+      (p.braking || '').toLowerCase().includes(searchQuery) ||
+      (p.battery || '').toLowerCase().includes(searchQuery) ||
+      (p.badges || []).some((b) => b.toLowerCase().includes(searchQuery)) ||
+      (p.description || '').toLowerCase().includes(searchQuery);
     return matchesCat && matchesSearch;
   });
 
   // 2. Sort
-  if (currentSort === 'price-asc') {
+  if (currentSort === 'featured') {
+    // Featured rows first, catalogue order preserved within each group.
+    // Array.prototype.sort is stable in every engine we target, so equal
+    // items keep their sheet order rather than being shuffled.
+    filtered.sort((x, y) => (y.featured === true) - (x.featured === true));
+  } else if (currentSort === 'price-asc') {
     filtered.sort((a, b) => a.price - b.price);
   } else if (currentSort === 'price-desc') {
     filtered.sort((a, b) => b.price - a.price);
@@ -324,15 +382,17 @@ function renderProducts() {
     return;
   }
 
-  grid.innerHTML = filtered.map(p => {
+  grid.innerHTML = filtered.map((p, i) => {
     const isAvailable = p.inStock !== false;
 
     return `
-      <article class="product-card" data-id="${p.id}">
+      <article class="product-card${!isAvailable ? ' product-card--oos' : ''}${p.featured ? ' product-card--featured' : ''}" data-id="${p.id}" style="--card-index:${i}">
         
         <!-- Media Container -->
         <div class="card-media" onclick="openProductModal('${p.id}')" role="button" tabindex="0" aria-label="View specifications for ${escapeHtml(p.name)}">
-          ${!isAvailable ? `<span class="badge-out-of-stock">Out of Stock</span>` : (p.badge ? `<span class="card-badge">${p.badge}</span>` : '')}
+          ${!isAvailable
+            ? `<span class="badge-out-of-stock">Out of Stock</span>`
+            : badgeStack(p)}
           <img src="${p.image}" alt="${escapeHtml(p.name)}" class="card-img${!isAvailable ? ' card-img--dimmed' : ''}" loading="lazy">
           <button class="quick-view-trigger" aria-label="Quick view specifications">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
@@ -345,42 +405,160 @@ function renderProducts() {
           <h3 class="card-title" title="${escapeHtml(p.name)}">${escapeHtml(p.name)}</h3>
           
           <!-- Spec Badges -->
+          <!-- A spec chip is only rendered when the sheet actually has that
+               value. A supplier plate missing a spec would otherwise render an
+               icon with no text beside it, which reads as broken. -->
           <div class="card-spec-chips">
-            <span class="spec-chip" title="Recommended Age">
-              <svg class="spec-chip-icon" viewBox="0 0 24 24"><path d="M12 2a5 5 0 1 0 5 5 5 5 0 0 0-5-5zm0 8a3 3 0 1 1 3-3 3 3 0 0 1-3 3zm9 11v-1a7 7 0 0 0-7-7h-4a7 7 0 0 0-7 7v1h2v-1a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v1z"/></svg>
-              ${p.ageRange}
-            </span>
-            <span class="spec-chip" title="Battery Power">
-              <svg class="spec-chip-icon" viewBox="0 0 24 24"><path d="M11 15h2v2h-2zm0-8h2v6h-2zm.99-5C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/></svg>
-              ${p.battery.split(' ')[0]}
-            </span>
-            <span class="spec-chip" title="Weight Capacity">
-              <svg class="spec-chip-icon" viewBox="0 0 24 24"><path d="M19 13h-6V7h-2v6H5v2h6v6h2v-6h6z"/></svg>
-              ${p.weightCapacity}
-            </span>
+            ${specChip('Recommended Age', p.ageRange, '<path d="M12 2a5 5 0 1 0 5 5 5 5 0 0 0-5-5zm0 8a3 3 0 1 1 3-3 3 3 0 0 1-3 3zm9 11v-1a7 7 0 0 0-7-7h-4a7 7 0 0 0-7 7v1h2v-1a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v1z"/>')}
+            ${specChip('Battery Power', p.battery, '<path d="M11 15h2v2h-2zm0-8h2v6h-2zm.99-5C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/>')}
+            ${specChip('Weight Capacity', p.weightCapacity, '<path d="M19 13h-6V7h-2v6H5v2h6v6h2v-6h6z"/>')}
           </div>
 
-          <!-- Price -->
+          <!-- Price. The struck-through figure and the "% OFF" tag appear
+               only when the sheet carries an OriginalPrice above the selling
+               price, so an undiscounted product renders exactly as before:
+               one clean number, nothing struck through. -->
           <div class="card-price-row">
             <span class="card-price">₹${p.price.toLocaleString('en-IN')}</span>
-            ${p.mrp ? `<span class="card-mrp">₹${p.mrp.toLocaleString('en-IN')}</span>` : ''}
+            ${p.originalPrice ? `
+              <s class="card-price-was">₹${p.originalPrice.toLocaleString('en-IN')}</s>
+              <span class="card-discount">${p.discountPercent}% OFF</span>
+            ` : ''}
           </div>
 
-          <!-- Action Button: Add to Cart or Out of Stock -->
+          <!-- Out of stock keeps the product visible but swaps the buy action
+               for a restock request, so demand is still captured. -->
           ${isAvailable ? `
             <button onclick="addToCart('${p.id}')" class="btn-add-cart" aria-label="Add ${escapeHtml(p.name)} to cart">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
               <span>Add to Cart</span>
             </button>
           ` : `
-            <button class="btn-out-of-stock" disabled aria-disabled="true">
-              <span>Out of Stock</span>
-            </button>
+            <a href="${PLAYNEST_CONFIG.buildNotifyMeUrl(p.name)}" target="_blank" rel="noopener noreferrer" class="btn-notify-me" aria-label="Ask to be notified when ${escapeHtml(p.name)} is back in stock">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+              <span>Notify Me</span>
+            </a>
           `}
         </div>
       </article>
     `;
   }).join('');
+}
+
+/**
+ * Emit Product/Offer structured data for the whole catalogue.
+ *
+ * Built from the loaded products rather than written by hand, so it can never
+ * drift from what the sheet says — a schema price that disagrees with the
+ * visible price is worse than no schema, and is the kind of thing Google
+ * issues manual actions over.
+ *
+ * One ItemList wrapping all products, rather than 48 separate blocks: it is
+ * the honest description of a single page listing many products, and it keeps
+ * the DOM to one script tag.
+ *
+ * KNOWN LIMIT: this runs after the catalogue fetch, so it inherits exactly the
+ * weakness the SEO audit flagged — a crawler that does not execute JS, or that
+ * abandons the render queue, sees no product schema at all. Baking this into
+ * the HTML at deploy time is the real fix and needs a build step. Emitting it
+ * client-side is strictly better than nothing (Google does render JS) but it
+ * is not equivalent to server-rendered markup.
+ *
+ * `image` and `url` are omitted: schema.org wants absolute URLs and there is
+ * no hostname yet. A relative path there is silently dropped by consumers; a
+ * made-up absolute one is a false claim. Both are added with the canonical tag
+ * once a domain exists — see SEO-NOTES.md.
+ *
+ * @param {Array} products the loaded catalogue
+ */
+function emitProductSchema(products) {
+  if (!products || !products.length) return;
+
+  const schema = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: 'Playnest Toys catalogue',
+    numberOfItems: products.length,
+    itemListElement: products.map((p, i) => {
+      const offer = {
+        '@type': 'Offer',
+        price: String(p.price),
+        priceCurrency: 'INR',
+        availability: p.inStock
+          ? 'https://schema.org/InStock'
+          : 'https://schema.org/OutOfStock'
+      };
+
+      const product = {
+        '@type': 'Product',
+        name: p.name,
+        category: p.category,
+        offers: offer
+      };
+
+      // Only state what the sheet actually carries. A blank cell must not
+      // become an empty string in the markup — an absent property is correct,
+      // an empty one is a claim that the value is nothing.
+      if (p.description) product.description = p.description;
+      if (p.battery || p.ageRange || p.weightCapacity) {
+        product.additionalProperty = [
+          ['Battery', p.battery],
+          ['Recommended age', p.ageRange],
+          ['Weight capacity', p.weightCapacity]
+        ]
+          .filter(([, value]) => value)
+          .map(([name, value]) => ({
+            '@type': 'PropertyValue',
+            name: name,
+            value: value
+          }));
+      }
+
+      return { '@type': 'ListItem', position: i + 1, item: product };
+    })
+  };
+
+  const el = document.createElement('script');
+  el.type = 'application/ld+json';
+  el.id = 'productSchema';
+  el.textContent = JSON.stringify(schema);
+
+  const existing = document.getElementById('productSchema');
+  if (existing) existing.remove();
+  document.head.appendChild(el);
+}
+
+/**
+ * Render a product's badges as separate tags.
+ *
+ * The sheet holds them in one comma-separated cell, so a product can carry
+ * more than one ("Twin Seat, New Arrival"). Rendering is capped so a
+ * mistakenly long list cannot cover the photo — auditBadges() warns about the
+ * overflow rather than the card silently swallowing it.
+ *
+ * @param {{badges?: string[]}} product
+ * @returns {string} markup, or '' when the product has no badges
+ */
+function badgeStack(product) {
+  const badges = (product.badges || []).slice(0, MAX_BADGES_PER_PRODUCT);
+  if (!badges.length) return '';
+  return '<span class="card-badge-stack">' +
+    badges.map((b) => '<span class="card-badge">' + escapeHtml(b) + '</span>').join('') +
+    '</span>';
+}
+
+/**
+ * Render one spec chip, or nothing at all when the sheet has no value for it.
+ * @param {string} label  tooltip text
+ * @param {string} value  the sheet value; blank means "omit this chip entirely"
+ * @param {string} iconPath  inner SVG markup for the chip icon
+ */
+function specChip(label, value, iconPath) {
+  const v = (value || '').trim();
+  if (!v) return '';
+  return '<span class="spec-chip" title="' + escapeHtml(label) + '">' +
+    '<svg class="spec-chip-icon" viewBox="0 0 24 24">' + iconPath + '</svg>' +
+    escapeHtml(v) + '</span>';
 }
 
 function escapeHtml(str) {
@@ -605,29 +783,44 @@ function initScrollHero() {
 
   if (!heroContainer || !canvas) return;
 
-  const ctx = canvas.getContext('2d', { alpha: false });
+  const ctx = canvas.getContext('2d', { alpha: true });
   const frames = new Array(TOTAL_FRAMES);
   let currentFrameIndex = -1;
   let firstPaintDone = false;
 
   const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  // --- Format selection (synchronous, one-off) ---------------------------
-  function supportsWebp() {
-    try {
-      const c = document.createElement('canvas');
-      return c.toDataURL('image/webp').indexOf('data:image/webp') === 0;
-    } catch (e) {
-      return false;
-    }
+  // --- Format selection ---------------------------------------------------
+  // This has to test DECODE support, because that's the only thing the hero
+  // actually needs — the 22 frames are loaded as <img> sources and drawn with
+  // ctx.drawImage(), never encoded. canvas.toDataURL('image/webp') tests
+  // ENCODE support instead, and Safari has never implemented WebP encoding —
+  // it silently returns a PNG data URL, so that check reports false on every
+  // iPhone unconditionally. Safari has decoded WebP fine since iOS 14, so
+  // every Safari visitor was being routed to the single static poster frame
+  // with no scroll listener ever attached: the page scrolled, the vehicle
+  // never did. Loading a real (tiny, inline) WebP as an <img> and checking it
+  // actually decoded is the correct test for what this code does.
+  function detectWebpSupport() {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => resolve(img.width > 0 && img.height > 0);
+      img.onerror = () => resolve(false);
+      img.src = 'data:image/webp;base64,UklGRiIAAABXRUJQVlA4IBYAAAAwAQCdASoBAAEADsD+JaQAA3AAAAAA';
+    });
   }
 
-  const useWebp = supportsWebp();
-  const FRAME_DIR = useWebp ? 'images/hero-frames-webp/' : 'images/hero-frames/';
-  const FRAME_EXT = useWebp ? '.webp' : '.jpg';
+  // Optimistic default so a slow-to-resolve detection never blocks anything;
+  // startLoading() awaits the real result before the first frame is requested.
+  let useWebp = true;
+  // Alpha WebP is ~97% supported. Rather than ship a 15 MB transparent PNG
+  // sequence for the remainder, those browsers get one static poster frame.
+  const FRAME_DIR = 'images/hero-frames-webp/';
+  const POSTER = 'images/hero-poster.png';
 
   function frameSrc(num) {
-    return FRAME_DIR + 'frame-' + String(num).padStart(3, '0') + FRAME_EXT;
+    if (!useWebp) return POSTER;
+    return FRAME_DIR + 'frame-' + String(num).padStart(3, '0') + '.webp';
   }
 
   // --- Canvas sizing -----------------------------------------------------
@@ -641,7 +834,29 @@ function initScrollHero() {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   }
 
-  // --- Draw one frame with object-fit: cover semantics --------------------
+  // --- Draw one frame, fitted to the hero's subject stage ---
+  // NOT object-fit:cover. Cover scales the 16:9 plate to fill the viewport,
+  // which blows the child + jeep up until they swallow the tagline and CTA.
+  // Instead the subject is fitted to a share of the viewport and anchored above
+  // the CTA lane. Those shares live in CSS (--hero-subject-*) so they can be
+  // tuned per breakpoint: one set of numbers cannot serve both a 1440px desktop
+  // and a 390px phone, where the plate is width-bound and the vehicle came out
+  // small with the CTA across its middle.
+  const viewport = document.getElementById('heroViewport');
+
+  function subjectMetrics() {
+    const cs = getComputedStyle(viewport || canvas);
+    const num = (name, fallback) => {
+      const v = parseFloat(cs.getPropertyValue(name));
+      return Number.isFinite(v) ? v : fallback;
+    };
+    return {
+      width: num('--hero-subject-width', 0.94),
+      maxH: num('--hero-subject-max-h', 0.66),
+      bottom: num('--hero-subject-bottom', 0.09)
+    };
+  }
+
   function drawFrame(img) {
     if (!img || !img.complete || img.naturalWidth === 0) return;
 
@@ -649,11 +864,33 @@ function initScrollHero() {
     const ch = canvas.clientHeight;
     if (!cw || !ch) return;
 
-    const scale = Math.max(cw / img.naturalWidth, ch / img.naturalHeight);
-    const dw = img.naturalWidth * scale;
-    const dh = img.naturalHeight * scale;
+    const m = subjectMetrics();
+    let dw = cw * m.width;
+    let dh = dw * (img.naturalHeight / img.naturalWidth);
+    const maxH = ch * m.maxH;
+    if (dh > maxH) { dh = maxH; dw = dh * (img.naturalWidth / img.naturalHeight); }
 
-    ctx.drawImage(img, (cw - dw) / 2, (ch - dh) / 2, dw, dh);
+    const dx = (cw - dw) / 2;
+    const dy = ch - ch * m.bottom - dh;
+
+    ctx.clearRect(0, 0, cw, ch);
+    ctx.drawImage(img, dx, dy, dw, dh);
+
+    // Soften the plate's bottom edge. The camera push-in runs the vehicle past
+    // the source frame in the late frames, so the plate ends in a straight cut
+    // through the tyres. On desktop that bleeds off-viewport, but on a phone it
+    // lands mid-screen as a visible hard line. A short destination-out fade
+    // makes it read as the vehicle settling into the stage instead.
+    const fadeH = Math.min(32, dh * 0.09);
+    if (fadeH > 1) {
+      const grad = ctx.createLinearGradient(0, dy + dh - fadeH, 0, dy + dh);
+      grad.addColorStop(0, 'rgba(0,0,0,0)');
+      grad.addColorStop(1, 'rgba(0,0,0,1)');
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.fillStyle = grad;
+      ctx.fillRect(dx, dy + dh - fadeH, dw, fadeH);
+      ctx.globalCompositeOperation = 'source-over';
+    }
 
     if (!firstPaintDone) {
       firstPaintDone = true;
@@ -697,6 +934,10 @@ function initScrollHero() {
     if (loadStarted) return;
     loadStarted = true;
 
+    // Resolved before any frame is requested, so frameSrc()'s first call
+    // already sees the correct value.
+    useWebp = await detectWebpSupport();
+
     sizeCanvas();
 
     // Paint the priority frame first so there is something on screen fast.
@@ -705,16 +946,26 @@ function initScrollHero() {
     paint(priority);
     currentFrameIndex = priority;
 
-    // Reduced motion stops here: one frame, no sequence, no scroll work.
-    if (prefersReduced) return;
+    // Reduced motion, or no WebP support: one frame, no sequence, no scroll work.
+    if (prefersReduced || !useWebp) return;
 
-    // Stream the rest in order, repainting if the user has already scrolled
-    // past the frames that have arrived.
+    // Fire every remaining frame at once instead of awaiting them one at a
+    // time. On a fast, near-zero-latency connection sequential loading is
+    // invisible, but on a real mobile network each request carries its own
+    // round trip, so 21 requests awaited in series can take several seconds
+    // end to end. Until a frame lands, nearestLoaded() keeps returning frame
+    // 0 for every scroll position past it — so on mobile the visitor sees the
+    // same static frame no matter how far they scroll, which reads as "the
+    // animation isn't happening" rather than "it's still loading". Loading
+    // all of them concurrently — the browser's own connection limit still
+    // queues what it must — and repainting after each arrival closes that gap
+    // to roughly one round trip instead of TOTAL_FRAMES of them.
+    const remaining = [];
     for (let i = 0; i < TOTAL_FRAMES; i++) {
       if (i === priority) continue;
-      await loadFrame(i);
-      if (i === currentFrameIndex) paint(i);
+      remaining.push(loadFrame(i).then(() => paint(currentFrameIndex)));
     }
+    await Promise.all(remaining);
   }
 
   /** Defer to idle so frame fetching never competes with the critical render. */
@@ -792,15 +1043,14 @@ function initScrollHero() {
     }
 
     // --- Overlay text drifts up and softens as the camera pushes in ---
+    // Beats 0–1 the wordmark leads; by Beat 2 it has handed off to the footage.
+    // The subject grows as the camera pushes in, so without this handoff the
+    // vehicle and the copy end up competing for the same band of pixels.
     if (textZone) {
-      if (progress <= 0.30) {
-        const t = easeOut(progress / 0.30);
-        textZone.style.transform = `translateY(${(-12 * t).toFixed(2)}px)`;
-        textZone.style.opacity = (1 - 0.15 * t).toFixed(3);
-      } else {
-        textZone.style.transform = 'translateY(-12px)';
-        textZone.style.opacity = '0.85';
-      }
+      const fade = easeOut(clamp01((progress - 0.04) / 0.26));
+      textZone.style.transform = `translateY(${(-26 * fade).toFixed(2)}px)`;
+      textZone.style.opacity = (1 - fade).toFixed(3);
+      textZone.style.pointerEvents = fade > 0.9 ? 'none' : '';
     }
 
     // --- Beat 3: the CTA resolves into place ---
@@ -869,11 +1119,8 @@ window.openProductModal = function(productId) {
   const ageEl = document.getElementById('modalSpecAge');
   const weightEl = document.getElementById('modalSpecWeight');
   const batteryEl = document.getElementById('modalSpecBattery');
-  const motorsEl = document.getElementById('modalSpecMotors');
-  const skuEl = document.getElementById('modalSpecSku');
+  const brakingEl = document.getElementById('modalSpecBraking');
   const featuresEl = document.getElementById('modalFeatures');
-  const addCartBtn = document.getElementById('modalAddCartBtn');
-  const waBtn = document.getElementById('modalWaBtn');
 
   if (imgEl) {
     imgEl.src = product.image;
@@ -882,28 +1129,38 @@ window.openProductModal = function(productId) {
   if (catEl) catEl.textContent = product.category;
   if (titleEl) titleEl.textContent = product.name;
   if (priceEl) priceEl.textContent = `₹${product.price.toLocaleString('en-IN')}`;
-  if (mrpEl) mrpEl.textContent = product.mrp ? `₹${product.mrp.toLocaleString('en-IN')}` : '';
-  if (descEl) descEl.textContent = product.description || '';
-  if (ageEl) ageEl.textContent = product.ageRange;
-  if (weightEl) weightEl.textContent = product.weightCapacity;
-  if (batteryEl) batteryEl.textContent = product.battery;
-  if (motorsEl) motorsEl.textContent = product.motors;
-  if (skuEl) skuEl.textContent = product.sku || 'N/A';
-
-  if (featuresEl) {
-    featuresEl.innerHTML = (product.features || []).map(f => `
-      <li class="modal-feature-item">
-        <span class="feature-check">✓</span>
-        <span>${escapeHtml(f)}</span>
-      </li>
-    `).join('');
+  // No MRP in the sheet — one real price per product, so the strikethrough is
+  // hidden rather than filled with an invented "was" figure.
+  // The modal mirrors the card: a "was" price only when the sheet has one.
+  if (mrpEl) {
+    if (product.originalPrice) {
+      mrpEl.innerHTML = '<s>₹' + product.originalPrice.toLocaleString('en-IN') + '</s>' +
+        '<span class="modal-discount">' + product.discountPercent + '% OFF</span>';
+      mrpEl.style.display = '';
+    } else {
+      mrpEl.textContent = '';
+      mrpEl.style.display = 'none';
+    }
   }
+  if (descEl) {
+    const text = (product.description || '').trim();
+    descEl.textContent = text;
+    descEl.style.display = text ? '' : 'none';
+  }
+  if (ageEl) ageEl.textContent = product.ageRange || '—';
+  if (weightEl) weightEl.textContent = product.weightCapacity || '—';
+  if (batteryEl) batteryEl.textContent = product.battery || '—';
+  if (brakingEl) brakingEl.textContent = product.braking || '—';
+
+  // The sheet carries no per-product feature list, so the block stays empty
+  // rather than showing an orphaned heading.
+  if (featuresEl) featuresEl.innerHTML = '';
 
   const stockBadgeEl = document.getElementById('modalStockBadge');
   const actionWrapperEl = document.getElementById('modalActionWrapper');
   const secondaryLinkEl = document.getElementById('modalSecondaryLink');
 
-  const waUrl = PLAYNEST_CONFIG.buildWhatsAppUrl(product.name, product.price, product.sku);
+  const waUrl = PLAYNEST_CONFIG.buildWhatsAppUrl(product.name, product.price);
 
   if (product.inStock !== false) {
     // IN STOCK STATE: Subtle stock pill + Add to Cart primary button + WhatsApp question link
@@ -938,11 +1195,11 @@ window.openProductModal = function(productId) {
 
     if (actionWrapperEl) {
       actionWrapperEl.innerHTML = `
-        <a href="${waUrl}" target="_blank" rel="noopener noreferrer" class="modal-primary-btn btn-wa-inquire" aria-label="Inquire about ${escapeHtml(product.name)} on WhatsApp">
+        <a href="${PLAYNEST_CONFIG.buildNotifyMeUrl(product.name)}" target="_blank" rel="noopener noreferrer" class="modal-primary-btn btn-wa-inquire" aria-label="Ask to be notified when ${escapeHtml(product.name)} is back in stock">
           <svg class="modal-btn-icon" viewBox="0 0 24 24" width="19" height="19" fill="currentColor">
             <path d="M12.04 2c-5.5 0-9.98 4.48-9.98 9.98 0 1.76.46 3.47 1.33 4.98L2 22l5.25-1.38c1.47.8 3.12 1.23 4.79 1.23 5.5 0 9.98-4.48 9.98-9.98 0-2.67-1.04-5.18-2.93-7.07C17.2 2.91 14.7 2 12.04 2zm0 1.83c2.18 0 4.23.85 5.77 2.39 1.54 1.54 2.39 3.59 2.39 5.77 0 4.5-3.66 8.17-8.16 8.17-1.42 0-2.81-.37-4.04-1.08l-.29-.17-3 .79.8-2.93-.18-.29c-.78-1.24-1.19-2.67-1.19-4.49 0-4.5 3.66-8.16 8.16-8.16zm-3.52 4.09c-.19 0-.44.07-.67.33-.23.26-.88.86-.88 2.1 0 1.24.9 2.43 1.03 2.6.13.17 1.75 2.77 4.3 3.83.61.25 1.08.4 1.45.52.61.19 1.17.17 1.61.1.49-.07 1.52-.62 1.73-1.22.21-.6.21-1.11.15-1.22-.06-.11-.23-.17-.49-.3-.26-.13-1.52-.75-1.75-.83-.23-.09-.4-.13-.58.13-.17.26-.66.83-.81 1-.15.17-.3.19-.56.06-.26-.13-1.08-.4-2.06-1.27-.76-.68-1.28-1.52-1.43-1.78-.15-.26-.02-.4.11-.52.12-.12.26-.3.39-.45.13-.15.17-.26.26-.43.08-.17.04-.32-.02-.45-.06-.13-.58-1.39-.79-1.9-.21-.5-.42-.43-.58-.44l-.49-.01z"/>
           </svg>
-          <span>Ask Availability on WhatsApp</span>
+          <span>Notify Me When Available</span>
         </a>
       `;
     }
@@ -985,4 +1242,63 @@ function initHeaderScroll() {
       header.classList.remove('scrolled');
     }
   }, { passive: true });
+}
+
+
+/* ==========================================================================
+   8. SCROLL REVEALS
+   Seen once per visit, so this sits in the delight budget rather than costing
+   anything per interaction. Fails safe: if IntersectionObserver is missing, or
+   the user prefers reduced motion, everything is marked visible immediately so
+   content can never be stranded hidden.
+   ========================================================================== */
+function initScrollReveals() {
+  const targets = document.querySelectorAll('.section-header, .category-card, .trust-item');
+  if (!targets.length) return;
+
+  const reveal = (el) => { el.classList.add('reveal', 'is-visible'); };
+
+  if (typeof window.IntersectionObserver !== 'function' ||
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    targets.forEach(reveal);
+    return;
+  }
+
+  targets.forEach((el, i) => {
+    el.classList.add('reveal');
+    el.style.transitionDelay = Math.min(i % 4, 3) * 60 + 'ms';
+  });
+
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (!entry.isIntersecting) return;
+      entry.target.classList.add('is-visible');
+      io.unobserve(entry.target);
+    });
+  }, { rootMargin: '0px 0px -12% 0px', threshold: 0.1 });
+
+  targets.forEach((el) => io.observe(el));
+}
+
+/* ==========================================================================
+   CATALOGUE UNAVAILABLE
+   Shown only when BOTH the published sheet and the bundled fallback fail.
+   An empty grid with no explanation reads as "this shop has no products",
+   which is worse than admitting the list could not be reached.
+   ========================================================================== */
+function showCatalogUnavailable() {
+  const grid = document.getElementById('productGrid');
+  if (!grid) return;
+  grid.innerHTML = `
+    <div class="catalog-empty-state">
+      <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M21 12a9 9 0 1 1-6.219-8.56"></path>
+      </svg>
+      <h3 class="empty-state-title">Catalogue temporarily unavailable</h3>
+      <p class="empty-state-text">We could not load our product list just now. Please refresh, or message us on WhatsApp and we will help straight away.</p>
+      <a href="${PLAYNEST_CONFIG.buildGeneralInquiryUrl()}" target="_blank" rel="noopener noreferrer" class="btn-primary btn-primary--wa btn-primary--sm">Chat on WhatsApp</a>
+    </div>
+  `;
+  const countEl = document.getElementById('catalogCount');
+  if (countEl) countEl.textContent = 'Unavailable';
 }
