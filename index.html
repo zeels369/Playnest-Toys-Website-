@@ -7,10 +7,18 @@
   <meta name="description" content="Playnest Toys sells premium battery-operated electric ride-on cars, bikes, jeeps, and scooters for kids aged 6–10 in India. Select your models and order via WhatsApp.">
   <meta name="keywords" content="kids electric cars, ride on toys india, battery bike for kids, 4x4 kids jeep, toy scooter, playnest toys">
   
-  <!-- Open Graph Meta -->
+  <!-- Canonical: now that the site is live on one real domain, this pins the
+       ranking/sharing identity to it regardless of how the link was reached
+       (http, www, a ?utm= tracking param from an ad or WhatsApp share). -->
+  <link rel="canonical" href="https://playnesttoys.in/">
+
+  <!-- Open Graph Meta. og:image and og:url are absolute — a relative image
+       path frequently fails to resolve when WhatsApp/Facebook/X scrape a
+       shared link, and this business sells through WhatsApp link shares. -->
   <meta property="og:title" content="Playnest Toys — Little Wheels, Big Smiles">
   <meta property="og:description" content="Battery-powered electric cars, bikes, jeeps, and scooters for kids aged 6–10. WhatsApp ordering across India.">
-  <meta property="og:image" content="images/logo.jpeg">
+  <meta property="og:image" content="https://playnesttoys.in/images/logo.jpeg">
+  <meta property="og:url" content="https://playnesttoys.in/">
   <meta property="og:type" content="website">
 
   <!-- Google Fonts: Fredoka (display) + Figtree (body, variable 400–700) + Caveat (script wordmark).
@@ -29,14 +37,11 @@
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <link rel="manifest" href="manifest.json">
 
-  <!-- Structured data: the shop itself.
-       Deliberately omits "url", "logo" and "image". Schema.org requires those
-       to be absolute, and this site has no domain yet — a placeholder or a
-       relative path there is worse than the field's absence, because a wrong
-       absolute URL is a claim about a page that does not exist. Add them, plus
-       the canonical tag and sitemap, in one pass once the hostname is decided.
-       See SEO-NOTES.md. Per-product Product/Offer schema is emitted by
-       js/app.js after the catalogue loads, since it is sheet-driven. -->
+  <!-- Structured data: the shop itself. url/logo/image are now absolute since
+       the site is live on playnesttoys.in — see SEO-NOTES.md for why they
+       were withheld before a domain existed. Per-product Product/Offer schema
+       is emitted by js/app.js after the catalogue loads, since it is
+       sheet-driven. -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -44,6 +49,9 @@
     "name": "Playnest Toys",
     "description": "Battery-powered electric ride-on cars, bikes, jeeps and scooters for children, sold direct to customers across India with ordering over WhatsApp.",
     "slogan": "Little Wheels, Big Smiles",
+    "url": "https://playnesttoys.in/",
+    "logo": "https://playnesttoys.in/images/logo.jpeg",
+    "image": "https://playnesttoys.in/images/logo.jpeg",
     "areaServed": {
       "@type": "Country",
       "name": "India"

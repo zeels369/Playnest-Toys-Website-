@@ -464,15 +464,23 @@ function renderProducts() {
  * client-side is strictly better than nothing (Google does render JS) but it
  * is not equivalent to server-rendered markup.
  *
- * `image` and `url` are omitted: schema.org wants absolute URLs and there is
- * no hostname yet. A relative path there is silently dropped by consumers; a
- * made-up absolute one is a false claim. Both are added with the canonical tag
- * once a domain exists — see SEO-NOTES.md.
+ * `image` is built from location.origin, so it is correct wherever the page
+ * is actually served from (production, or a local test run) without a
+ * hardcoded hostname.
+ *
+ * `url` stays omitted. That one was never a domain problem — it needs a page
+ * that identifies ONE product, and this site has none: every product is a
+ * filter state on the same single page, so pointing every product's `url` at
+ * the same catalogue anchor wouldn't identify anything. That is the "real
+ * per-category/product routes" item in SEO-NOTES.md, a separate and larger
+ * piece of work from wiring in a domain.
  *
  * @param {Array} products the loaded catalogue
  */
 function emitProductSchema(products) {
   if (!products || !products.length) return;
+
+  const origin = window.location.origin;
 
   const schema = {
     '@context': 'https://schema.org',
@@ -500,6 +508,14 @@ function emitProductSchema(products) {
       // become an empty string in the markup — an absent property is correct,
       // an empty one is a claim that the value is nothing.
       if (p.description) product.description = p.description;
+      if (p.image) {
+        // ImageURL is a site-relative path (images/products/...) or already
+        // an absolute https:// URL if a supplier CDN link was used instead —
+        // don't double-prefix one that's already absolute.
+        product.image = /^https?:\/\//i.test(p.image)
+          ? p.image
+          : origin + '/' + p.image.replace(/^\/+/, '');
+      }
       if (p.battery || p.ageRange || p.weightCapacity) {
         product.additionalProperty = [
           ['Battery', p.battery],

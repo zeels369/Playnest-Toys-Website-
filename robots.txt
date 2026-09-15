@@ -10,7 +10,4 @@ Allow: /
 # The product photos are the point of a toy catalogue — image search is a real
 # source of traffic here, so they are explicitly not excluded.
 
-# Sitemap: add the absolute URL once the site has a domain, e.g.
-#   Sitemap: https://playnesttoys.com/sitemap.xml
-# A sitemap must list absolute URLs, so it cannot be written until the
-# hostname is decided. See SEO-NOTES.md.
+Sitemap: https://playnesttoys.in/sitemap.xml
