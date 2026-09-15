@@ -1,0 +1,13 @@
+# Playnest Toys — crawl policy
+#
+# Everything on this site is public catalogue content meant to be found, so
+# crawling is fully open. There is no admin area, no user accounts and no
+# checkout to keep out of an index.
+
+User-agent: *
+Allow: /
+
+# The product photos are the point of a toy catalogue — image search is a real
+# source of traffic here, so they are explicitly not excluded.
+
+Sitemap: https://playnesttoys.in/sitemap.xml

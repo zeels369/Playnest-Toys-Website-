@@ -1,18 +1,36 @@
 /**
  * ============================================================================
- * PLAYNEST TOYS — CONFIGURATION & PRODUCT DATA CATALOG
+ * PLAYNEST TOYS — CONFIGURATION & PRODUCT DATA SOURCE
  * ============================================================================
- * 
- * ⚠️ DEVELOPER NOTICE / IMPORTANT:
- * All product records below contain SAMPLE / PLACEHOLDER data derived for 
- * structure and design preview purposes. All sample items are prefixed with 
- * "SAMPLE — " in their name field. 
- * 
- * 🔴 BEFORE SITE LAUNCH:
- * 1. ✅ DONE — `PLAYNEST_CONFIG.whatsappNumber` is set to the live business number.
- * 2. Replace the sample items in `PLAYNEST_PRODUCTS` with your approved product inventory,
- *    final retail prices, and approved specs.
- * 3. Place actual product photos into `/images/products/` and reference their file names here.
+ *
+ * Products are NOT defined in this file. They are fetched at runtime from a
+ * published Google Sheet (CSV), so the catalogue can be edited in the sheet
+ * without touching any code.
+ *
+ * 🔴 TO POINT THE SITE AT YOUR SHEET:
+ *   1. In the sheet: File → Share → Publish to web
+ *   2. Choose the "Products" tab, format "Comma-separated values (.csv)"
+ *   3. Publish, copy the URL, paste it into PRODUCTS_CSV_URL below.
+ *
+ * Expected columns (order does not matter — they are matched by header name):
+ *   Id, Name, Category, OriginalPrice, Price, AgeRange, WeightCapacity,
+ *   Battery, Braking, Description, ImageURL, Badge, Featured, InStock
+ *
+ *   Category  must be one of: cars | bikes | jeeps | scooters
+ *   Price     digits only, no currency symbol or separators (e.g. 6200).
+ *             This is always the price actually charged.
+ *   OriginalPrice  optional. The pre-discount price. Shown struck through
+ *             beside Price, with the saving as a "% OFF" tag. Ignored unless
+ *             it is a number GREATER than Price, so a blank, equal or lower
+ *             value simply shows the plain price and no product can display
+ *             a discount it does not have.
+ *   InStock   TRUE or FALSE
+ *   Badge     leave blank for no badge. Accepts SEVERAL badges separated by
+ *             commas ("Bestseller, New Arrival"); each renders as its own
+ *             tag. A "Badges" heading works identically.
+ *   Featured  TRUE lifts the product to the top under the default sort
+ *   Description  free text shown in the Quick View modal; blank hides the block
+ *   ImageURL  a path relative to the site root (images/products/…) or a full URL
  * ============================================================================
  */
 
@@ -20,26 +38,29 @@ const PLAYNEST_CONFIG = {
   brandName: "Playnest Toys",
   tagline: "Little Wheels, Big Smiles",
   subtext: "TOYS · RIDE · FUN",
-  
+
   // 🟢 SINGLE SOURCE OF TRUTH FOR WHATSAPP ORDERING:
   // Digits with country code, no '+', spaces, or hyphens.
   // Live business number: +91 98179 23818
-  // Every WhatsApp CTA on the site (floating Chat pill, footer button, cart
-  // checkout, and both Quick View modal links) reads from this one property.
   whatsappNumber: "919817923818",
-  
+
+  // 🔴 PUBLISHED SHEET CSV URL — paste yours here.
+  // Leave empty to fall back to data/products.csv bundled with the site.
+  PRODUCTS_CSV_URL: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSbFkc5ocvmSEmmeTm26XnyGK7Ig9Ur53cUcvVbvhmotteytfbXivc6ZWkiikqHSu1eQBYp0p1WEz4Y/pub?output=csv",
+
+  // Local fallback, used when the sheet URL is unset or unreachable, so the
+  // catalogue never renders empty.
+  PRODUCTS_CSV_FALLBACK: "data/products.csv",
+
   // Consolidated Cart WhatsApp Message Builder
-  buildCartWhatsAppUrl: function(cartItems, grandTotal) {
+  buildCartWhatsAppUrl: function (cartItems, grandTotal) {
     const cleanNumber = this.whatsappNumber.replace(/[^0-9]/g, '');
-    
+
     let msg = `Hi Playnest Toys! 🚗✨\nI would like to place an order for the following ride-on toys:\n\n`;
-    
+
     cartItems.forEach((item, index) => {
       const itemTotal = item.product.price * item.quantity;
       msg += `${index + 1}. *${item.product.name}*\n   • Qty: ${item.quantity} × ₹${item.product.price.toLocaleString('en-IN')}\n   • Subtotal: ₹${itemTotal.toLocaleString('en-IN')}\n`;
-      if (item.product.sku) {
-        msg += `   • SKU: ${item.product.sku}\n`;
-      }
       msg += `\n`;
     });
 
@@ -53,18 +74,22 @@ const PLAYNEST_CONFIG = {
   },
 
   // Single product direct inquiry WhatsApp Link
-  buildWhatsAppUrl: function(productName, price, sku) {
+  buildWhatsAppUrl: function (productName, price) {
     const cleanNumber = this.whatsappNumber.replace(/[^0-9]/g, '');
     let msg = `Hi Playnest Toys! 🚗✨\nI would like to inquire about:\n\n*Product:* ${productName}\n*Price:* ₹${price.toLocaleString('en-IN')}`;
-    if (sku) {
-      msg += `\n*SKU:* ${sku}`;
-    }
     msg += `\n\nPlease let me know availability and delivery details to my location. Thank you!`;
     return `https://wa.me/${cleanNumber}?text=${encodeURIComponent(msg)}`;
   },
 
+  // Restock notification request, used in place of Add to Cart when InStock is FALSE
+  buildNotifyMeUrl: function (productName) {
+    const cleanNumber = this.whatsappNumber.replace(/[^0-9]/g, '');
+    const msg = `Hi Playnest Toys! 👋 Please notify me when *${productName}* is back in stock. Thank you!`;
+    return `https://wa.me/${cleanNumber}?text=${encodeURIComponent(msg)}`;
+  },
+
   // General WhatsApp Inquiry Link
-  buildGeneralInquiryUrl: function() {
+  buildGeneralInquiryUrl: function () {
     const cleanNumber = this.whatsappNumber.replace(/[^0-9]/g, '');
     const msg = `Hi Playnest Toys! 👋 I'm looking for a battery-operated ride-on toy for my child. Could you share your latest recommendations and availability?`;
     return `https://wa.me/${cleanNumber}?text=${encodeURIComponent(msg)}`;
@@ -72,318 +97,288 @@ const PLAYNEST_CONFIG = {
 };
 
 const PLAYNEST_CATEGORIES = [
-  {
-    id: "all",
-    name: "All Ride-Ons",
-    shortName: "All",
-    icon: "grid",
-    description: "Explore our entire electric ride-on toy collection"
-  },
-  {
-    id: "cars",
-    name: "Ride-On Cars",
-    shortName: "Cars",
-    icon: "car",
-    description: "Sporty supercars, luxury sedans & vintage roadsters"
-  },
-  {
-    id: "bikes",
-    name: "Bikes & Trikes",
-    shortName: "Bikes",
-    icon: "bike",
-    description: "Cruisers, racing superbikes & stable training trikes"
-  },
-  {
-    id: "jeeps",
-    name: "Jeeps & UTVs",
-    shortName: "Jeeps",
-    icon: "jeep",
-    description: "4x4 Monster off-roaders, patrol jeeps & big wheels"
-  },
-  {
-    id: "scooters",
-    name: "Scooters & Scooties",
-    shortName: "Scooters",
-    icon: "scooter",
-    description: "Classic Italian Vespa styling, single & duo-seaters"
-  }
+  { id: "all", name: "All Ride-Ons", shortName: "All" },
+  { id: "cars", name: "Ride-On Cars", shortName: "Cars" },
+  { id: "bikes", name: "Bikes & Trikes", shortName: "Bikes" },
+  { id: "jeeps", name: "Jeeps & UTVs", shortName: "Jeeps" },
+  { id: "scooters", name: "Scooters & Scooties", shortName: "Scooters" }
 ];
 
-const PLAYNEST_PRODUCTS = [
-  {
-    id: "pn-car-01",
-    name: "SAMPLE — DL1000 Dream Sports Car",
-    category: "cars",
-    price: 6700,
-    mrp: 11200,
-    sku: "DL-1000",
-    image: "images/products/car-ferrari-f8.svg",
-    badge: "Popular Choice",
-    inStock: true,
-    ageRange: "2–6 Yrs",
-    battery: "12V Rechargeable",
-    weightCapacity: "40 kg",
-    motors: "2x2 Dual Motor",
-    features: [
-      "Openable Butterfly Doors",
-      "2.4G Parental Remote Control",
-      "LED Headlights & Taillights",
-      "USB/AUX MP3 Music Dashboard",
-      "Soft Spring Suspension"
-    ],
-    description: "A show-stopping sports car for young speedsters. Features realistic push-button start, working headlights, openable doors, and both manual pedal drive and full parental remote override."
-  },
-  {
-    id: "pn-jeep-01",
-    name: "SAMPLE — Rubicon Extreme 4x4 Off-Roader",
-    category: "jeeps",
-    price: 10500,
-    mrp: 16500,
-    sku: "RUBI-4X4",
-    image: "images/products/jeep-rubicon-4x4.svg",
-    badge: "Top Seller",
-    inStock: true,
-    ageRange: "2–12 Yrs",
-    battery: "12V Heavy-Duty",
-    weightCapacity: "60 kg",
-    motors: "4x4 Quad Motors",
-    features: [
-      "High-Clearance All-Terrain Wheels",
-      "Heavy-Duty Roll Bar & Spotlights",
-      "Parental Long-Range Remote",
-      "Dual Shock Absorbers",
-      "Spacious Wide Double-Seater"
-    ],
-    description: "Built for true adventure with quad 4x4 motors capable of grass, gravel, and pavement. Includes high-torque climbing power, working light bars, and safety seatbelt harness."
-  },
-  {
-    id: "pn-bike-01",
-    name: "SAMPLE — Royal Enfield Style Classic Cruiser",
-    category: "bikes",
-    price: 8000,
-    mrp: 15000,
-    sku: "RE-500",
-    image: "images/products/bike-royal-enfield.svg",
-    badge: "Parent Favorite",
-    inStock: true,
-    ageRange: "2–7 Yrs",
-    battery: "12V Rechargeable",
-    weightCapacity: "50 kg",
-    motors: "High Torque Single Motor",
-    features: [
-      "Realistic Hand Accelerator Throttle",
-      "Foot Brake for Safety",
-      "Removable Auxiliary Training Wheels",
-      "Vintage Headlight & Engine Sound",
-      "Leather-Look Ergonomic Seat"
-    ],
-    description: "Iconic retro motorbike styling tailored for kids. Comes with sturdy side stabilizer wheels for early learners and smooth twist-throttle hand race control."
-  },
-  {
-    id: "pn-scooter-01",
-    name: "SAMPLE — Vespa Italian Classic Scooty",
-    category: "scooters",
-    price: 4300,
-    mrp: 7000,
-    sku: "VSP-42",
-    image: "images/products/scooter-vespa-red.svg",
-    badge: "Best for Toddlers",
-    inStock: true,
-    ageRange: "2–8 Yrs",
-    battery: "12V Rechargeable",
-    weightCapacity: "50 kg",
-    motors: "Smooth Dual Drive",
-    features: [
-      "Classic Retro Curved Body",
-      "Dual Training Balance Wheels",
-      "Hand Throttle & Foot Brake",
-      "Built-in Rhymes & Horn",
-      "Low Step-Through Comfort Deck"
-    ],
-    description: "Charming European styling with gentle acceleration curve ideal for toddlers. Safe low center of gravity with built-in music and bright chrome-look trims."
-  },
-  {
-    id: "pn-car-02",
-    name: "SAMPLE — BMW GT Sport Roadster",
-    category: "cars",
-    price: 4500,
-    mrp: 8000,
-    sku: "BMW-GT",
-    image: "images/products/car-bmw-gt.svg",
-    badge: "Value Pick",
-    inStock: true,
-    ageRange: "2–5 Yrs",
-    battery: "6V / 12V Compatible",
-    weightCapacity: "30 kg",
-    motors: "2x2 Dual Motor",
-    features: [
-      "Kid-Friendly Steering Wheel",
-      "Forward & Reverse Gear Switch",
-      "Parental Remote Access",
-      "Illuminated Grill Lights",
-      "Anti-Slip Tread Tyres"
-    ],
-    description: "Sleek and compact roadster with responsive steering, illuminated kidneys grill, and safety seatbelt. Perfect for apartment driveways and living room tracks."
-  },
-  {
-    id: "pn-bike-02",
-    name: "SAMPLE — BMW RR 018 Smoke Edition Superbike",
-    category: "bikes",
-    price: 8000,
-    mrp: 10500,
-    sku: "RR-018",
-    image: "images/products/bike-bmw-rr.svg",
-    badge: "Special Effects",
-    inStock: true,
-    ageRange: "2–6 Yrs",
-    battery: "12V Fast-Charge",
-    weightCapacity: "40 kg",
-    motors: "High-RPM Dual Motor",
-    features: [
-      "Real Water Mist Exhaust Smoke Effect",
-      "Aerodynamic Racing Bodywork",
-      "Hand Throttle & Foot Brake",
-      "Dynamic LED Wheel Lighting",
-      "Stabilizing Trike Wheel Base"
-    ],
-    description: "The crowd favorite with cool harmless cold-mist exhaust smoke! Features aggressive racing contours, LED light-up wheels, and authentic starting motor rev sounds."
-  },
-  {
-    id: "pn-jeep-02",
-    name: "SAMPLE — Defender Heavy Duty UTV",
-    category: "jeeps",
-    price: 6200,
-    mrp: 9500,
-    sku: "DEF-1555",
-    image: "images/products/jeep-defender.svg",
-    badge: "Tough Build",
-    inStock: true,
-    ageRange: "2–5 Yrs",
-    battery: "12V Long-Life",
-    weightCapacity: "35 kg",
-    motors: "4x4 Multi-Wheel Drive",
-    features: [
-      "Roof LED Light Bar",
-      "Heavy-Duty Front Bumper",
-      "Parental Wireless Remote",
-      "Multi-Function Steering Controls",
-      "Deep Lug Tread Wheels"
-    ],
-    description: "Rugged and capable mini-SUV with high road clearance, working roof beam lights, and parent wireless override for total peace of mind."
-  },
-  {
-    id: "pn-jeep-03",
-    name: "SAMPLE — Police Interceptor Patrol 911",
-    category: "jeeps",
-    price: 4000,
-    mrp: 6500,
-    sku: "POL-911",
-    image: "images/products/jeep-police-888.svg",
-    badge: "Kids Favorite",
-    inStock: true,
-    ageRange: "2–5 Yrs",
-    battery: "6V / 12V Battery",
-    weightCapacity: "30 kg",
-    motors: "4x4 Motor Wheels",
-    features: [
-      "Flashing Red & Blue Police Sirens",
-      "Working Megaphone / PA Speaker",
-      "Parent Remote Control",
-      "Sturdy Black Guard Frame",
-      "Easy Foot Pedal Drive"
-    ],
-    description: "Let your little officer save the day! Features flashing red and blue strobe lights, realistic police siren sounds, and a fun roleplay design."
-  },
-  {
-    id: "pn-scooter-02",
-    name: "SAMPLE — Vespa Duo Double Seater",
-    category: "scooters",
-    price: 6000,
-    mrp: 10400,
-    sku: "VSP-D41",
-    image: "images/products/scooter-vespa-double.svg",
-    badge: "2-Seater",
-    inStock: true,
-    ageRange: "2–8 Yrs",
-    battery: "12V High-Capacity",
-    weightCapacity: "50 kg",
-    motors: "Dual Rear Drive",
-    features: [
-      "Twin Tandem Cushioned Seats",
-      "Passenger Backrest Support",
-      "Parental Remote Function",
-      "Front Chrome Luggage Rack",
-      "Tri-Wheel Solid Stability"
-    ],
-    description: "Special double-seater edition with twin backrest supports so siblings or friends can cruise together in vintage style and comfort."
-  },
-  {
-    id: "pn-car-03",
-    name: "SAMPLE — Mercedes 300SL Vintage Roadster",
-    category: "cars",
-    price: 9500,
-    mrp: 16500,
-    sku: "MB-VIN15",
-    image: "images/products/car-mercedes-vintage.svg",
-    badge: "Collector Edition",
-    inStock: false, // Sample demo of out-of-stock state for client toggle
-    ageRange: "2–7 Yrs",
-    battery: "12V Rechargeable",
-    weightCapacity: "50 kg",
-    motors: "2x2 High-Efficiency",
-    features: [
-      "Classic Retro Curved Fenders",
-      "Dual Round Chrome Headlamps",
-      "Tufted Leatherette Seats",
-      "Bluetooth & FM Audio Console",
-      "Parent Remote with Emergency Stop"
-    ],
-    description: "Timeless automotive beauty with glistening chrome rims, vintage horn sounds, comfortable upholstery, and gentle start throttle."
-  },
-  {
-    id: "pn-bike-03",
-    name: "SAMPLE — Harley Chopper with Cargo Trunk",
-    category: "bikes",
-    price: 2800,
-    mrp: 5000,
-    sku: "HRLY-DIG",
-    image: "images/products/bike-harley-diggi.svg",
-    badge: "Budget Friendly",
-    inStock: true,
-    ageRange: "2–4 Yrs",
-    battery: "6V Rechargeable",
-    weightCapacity: "30 kg",
-    motors: "Single Rear Drive",
-    features: [
-      "High Ape-Hanger Handlebars",
-      "Dual Storage Trunks for Toys",
-      "Foot Accelerator Pedal",
-      "Stable 3-Wheel Trike Frame",
-      "Safety Speed Limiter"
-    ],
-    description: "Super stable 3-wheeler motorcycle with rear side trunks so kids can carry snacks and smaller toys along on their driveway adventures."
-  },
-  {
-    id: "pn-jeep-04",
-    name: "SAMPLE — Polaris Monster UTV 2488",
-    category: "jeeps",
-    price: 8500,
-    mrp: 14000,
-    sku: "POL-2488",
-    image: "images/products/jeep-polaris-utv.svg",
-    badge: "Off-Road Ready",
-    inStock: true,
-    ageRange: "2–11 Yrs",
-    battery: "12V High-Output",
-    weightCapacity: "60 kg",
-    motors: "4x4 All-Wheel Drive",
-    features: [
-      "Extreme High Ground Clearance",
-      "Dazzling Roof Matrix LED Lights",
-      "Heavy-Duty Independent Springs",
-      "Keyless Start Button",
-      "Parent Remote Control"
-    ],
-    description: "High-power off-road monster with eye-catching matrix light array, giant high-grip tyres, and ample power for backyard terrain."
+/**
+ * Populated by loadProducts() before the catalogue renders. Kept as a mutable
+ * binding rather than a const so the fetch layer can swap it in wholesale.
+ */
+let PLAYNEST_PRODUCTS = [];
+
+/* ==========================================================================
+   CSV PARSING
+
+   A hand-rolled parser rather than a dependency: the site ships zero runtime
+   dependencies, and Google's CSV export is well-formed. Handles quoted fields,
+   escaped quotes ("") and embedded commas and newlines, which matter because
+   product names contain commas and braking descriptions contain "&".
+   ========================================================================== */
+function parseCSV(text) {
+  const rows = [];
+  let row = [];
+  let field = '';
+  let inQuotes = false;
+
+  // Normalise line endings so CRLF from Sheets does not leak into values.
+  const src = text.replace(/\r\n?/g, '\n');
+
+  for (let i = 0; i < src.length; i++) {
+    const c = src[i];
+
+    if (inQuotes) {
+      if (c === '"') {
+        if (src[i + 1] === '"') { field += '"'; i++; }   // escaped quote
+        else inQuotes = false;
+      } else {
+        field += c;
+      }
+      continue;
+    }
+
+    if (c === '"') { inQuotes = true; continue; }
+    if (c === ',') { row.push(field); field = ''; continue; }
+    if (c === '\n') { row.push(field); rows.push(row); row = []; field = ''; continue; }
+    field += c;
   }
-];
+
+  // Trailing field / row with no terminating newline.
+  if (field.length || row.length) { row.push(field); rows.push(row); }
+
+  return rows.filter((r) => r.some((v) => v.trim() !== ''));
+}
+
+/**
+ * Turn CSV rows into product objects, matching columns by HEADER NAME so the
+ * sheet's column order can change without breaking the site.
+ */
+function rowsToProducts(rows) {
+  if (!rows.length) return [];
+
+  // Header matching drops spaces as well as case, so "OriginalPrice" and a
+  // sheet owner's "Original Price" resolve to the same column instead of the
+  // second one silently reading as missing.
+  const normalize = (h) => h.trim().toLowerCase().replace(/\s+/g, '');
+  const headers = rows[0].map(normalize);
+  const col = (row, name) => {
+    const idx = headers.indexOf(normalize(name));
+    return idx === -1 ? '' : (row[idx] || '').trim();
+  };
+
+  return rows.slice(1).map((row, i) => {
+    const name = col(row, 'Name');
+    if (!name) return null;
+
+    // Strip anything that is not a digit so "₹6,200" and "6200" both work.
+    const num = (v) => parseInt(v.replace(/[^0-9]/g, ''), 10);
+    const price = num(col(row, 'Price'));
+    const wasPrice = num(col(row, 'OriginalPrice'));
+
+    // A strikethrough is a savings claim, so it is honoured only when the
+    // sheet proves one: a real number strictly above the selling price.
+    // Blank, equal, lower or malformed all fall back to the plain price.
+    const originalPrice =
+      Number.isFinite(wasPrice) && Number.isFinite(price) && wasPrice > price
+        ? wasPrice
+        : null;
+
+    // One cell, any number of badges. "Twin Seat, New Arrival" becomes two
+    // tags; a single value still becomes one, so every existing row keeps
+    // working untouched. Empty segments left by a stray comma are dropped
+    // rather than rendered as an empty tag.
+    const badges = (col(row, 'Badges') || col(row, 'Badge'))
+      .split(',')
+      .map((b) => b.trim())
+      .filter(Boolean);
+
+    const stockRaw = col(row, 'InStock').toUpperCase();
+    // Anything other than an explicit FALSE/NO/0 counts as in stock, so a blank
+    // cell never silently hides a product's buy button.
+    const inStock = !['FALSE', 'NO', '0'].includes(stockRaw);
+
+    return {
+      id: col(row, 'Id') || 'row-' + (i + 1),
+      name,
+      category: (col(row, 'Category') || 'bikes').toLowerCase(),
+      price: Number.isFinite(price) ? price : 0,
+      originalPrice,
+      // Whole-number percentage saved. Null when there is no discount.
+      discountPercent: originalPrice
+        ? Math.round(((originalPrice - price) / originalPrice) * 100)
+        : null,
+      ageRange: col(row, 'AgeRange'),
+      weightCapacity: col(row, 'WeightCapacity'),
+      battery: col(row, 'Battery'),
+      braking: col(row, 'Braking'),
+      description: col(row, 'Description'),
+      // Windows file paths get pasted into this column ("images\products\x.jpg")
+      // whenever someone copies a path from Explorer. A URL needs forward
+      // slashes, and a browser silently treats a backslash path as a broken
+      // relative URL — the product renders with an empty image box and no error
+      // anywhere. Normalizing here means the sheet tolerates either form.
+      image: col(row, 'ImageURL').replace(/\\/g, '/'),
+      badges,
+      // Same permissive rule as InStock: only an explicit TRUE promotes a
+      // product, so a blank cell never silently features something.
+      featured: ['TRUE', 'YES', '1'].includes(col(row, 'Featured').toUpperCase()),
+      inStock
+    };
+  }).filter(Boolean);
+}
+
+/**
+ * Fetch the catalogue. Tries the published sheet first, then the bundled
+ * fallback CSV, so a sheet outage or an unset URL degrades to the last known
+ * catalogue instead of an empty grid.
+ *
+ * @returns {Promise<{products: Array, source: string}>}
+ */
+const FETCH_TIMEOUT_MS = 4000;
+
+async function loadProducts() {
+  const sources = [
+    PLAYNEST_CONFIG.PRODUCTS_CSV_URL,
+    PLAYNEST_CONFIG.PRODUCTS_CSV_FALLBACK
+  ].filter(Boolean);
+
+  for (const url of sources) {
+    try {
+      // A dead sheet URL can hang on DNS for ~10s, leaving the grid empty that
+      // whole time. Give up quickly and fall through to the bundled copy —
+      // stale-but-instant beats correct-but-blank.
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+      let res;
+      try {
+        // cache: 'no-store' asks the browser not to add its own caching on top
+        // of Google's edge cache, so any delay is Google's alone.
+        res = await fetch(url, { cache: 'no-store', signal: controller.signal });
+      } finally {
+        clearTimeout(timer);
+      }
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+
+      const products = rowsToProducts(parseCSV(await res.text()));
+      if (!products.length) throw new Error('no rows parsed');
+
+      PLAYNEST_PRODUCTS = products;
+      return { products, source: url };
+    } catch (err) {
+      console.warn('[playnest] product source failed:', url, '—', err.message);
+    }
+  }
+
+  PLAYNEST_PRODUCTS = [];
+  return { products: [], source: null };
+}
+
+/* ==========================================================================
+   BADGE AUDIT
+
+   Badges are catalogue-wide: the grid shows every category together by
+   default, so the same badge on two products reads as a bug, and a superlative
+   badge is simply wrong if another product beats it on that measure.
+
+   This never rewrites the sheet. It reports to the console, so a bad badge is
+   caught the first time the page is opened rather than by a customer.
+
+   Where a criterion TIES, the rule is to leave both blank and raise it — never
+   to pick a winner silently.
+   ========================================================================== */
+/** How many badges one card can carry before it stops reading as a highlight. */
+const MAX_BADGES_PER_PRODUCT = 2;
+
+function auditBadges(products) {
+  const issues = [];
+  const badged = products.filter((p) => p.badges && p.badges.length);
+
+  // Every (product, badge) pair, so a product wearing two badges is checked
+  // once per badge rather than once per product.
+  const pairs = [];
+  badged.forEach((p) => p.badges.forEach((b) => pairs.push({ product: p, badge: b })));
+
+  // 1. The same badge text on more than one product.
+  const byBadge = {};
+  pairs.forEach(({ product, badge }) => {
+    const key = badge.toLowerCase();
+    (byBadge[key] = byBadge[key] || { label: badge, names: [] }).names.push(product.name);
+  });
+  Object.values(byBadge).forEach(({ label, names }) => {
+    const unique = [...new Set(names)];
+    if (unique.length > 1) {
+      issues.push('Badge "' + label + '" is on ' + unique.length + ' products (' +
+        unique.join(', ') + '). Badges are catalogue-wide — keep one.');
+    }
+  });
+
+  // 2. The same badge twice on ONE product, and overloaded cards. Only
+  //    possible now that a single cell can hold a list.
+  badged.forEach((p) => {
+    const seen = p.badges.map((b) => b.toLowerCase());
+    if (new Set(seen).size !== seen.length) {
+      issues.push('"' + p.name + '" repeats a badge (' + p.badges.join(', ') +
+        '). Remove the duplicate.');
+    }
+    if (p.badges.length > MAX_BADGES_PER_PRODUCT) {
+      issues.push('"' + p.name + '" carries ' + p.badges.length + ' badges (' +
+        p.badges.join(', ') + '). Keep it to ' + MAX_BADGES_PER_PRODUCT +
+        ' — more than that and none of them stand out.');
+    }
+  });
+
+  if (products.length) {
+    const prices = products.map((p) => p.price);
+    const min = Math.min(...prices);
+    const max = Math.max(...prices);
+    const cheapest = products.filter((p) => p.price === min);
+    const priciest = products.filter((p) => p.price === max);
+
+    const isValue = (b) => /best value|value pick/i.test(b);
+    const isTop = (b) => /premium|top of range|flagship/i.test(b);
+
+    // 3. Superlative badges the numbers contradict — checked per badge, so a
+    //    product tagged "Twin Seat, Premium" is still caught on the Premium.
+    pairs.forEach(({ product, badge }) => {
+      if (isValue(badge) && product.price !== min) {
+        issues.push('"' + product.name + '" carries "' + badge + '" at ' + product.price +
+          ', but ' + min + ' (' + cheapest.map((c) => c.name).join(', ') + ') is cheaper.');
+      }
+      if (isTop(badge) && product.price !== max) {
+        issues.push('"' + product.name + '" carries "' + badge + '" at ' + product.price +
+          ', but ' + max + ' (' + priciest.map((c) => c.name).join(', ') + ') is higher.');
+      }
+    });
+
+    // 4. Ties on a superlative criterion — flag, never guess a winner.
+    const anyValue = pairs.some(({ badge }) => isValue(badge));
+    const anyTop = pairs.some(({ badge }) => isTop(badge));
+    if (cheapest.length > 1 && anyValue) {
+      issues.push(cheapest.length + ' products tie at the lowest price (' +
+        cheapest.map((c) => c.name).join(', ') +
+        '). A value badge cannot be assigned without a tiebreak — leave blank and decide deliberately.');
+    }
+    if (priciest.length > 1 && anyTop) {
+      issues.push(priciest.length + ' products tie at the highest price (' +
+        priciest.map((c) => c.name).join(', ') +
+        '). A top-of-range badge cannot be assigned without a tiebreak — leave blank and decide deliberately.');
+    }
+
+    // 5. A discount badge on a product with no discount in the sheet.
+    pairs.forEach(({ product, badge }) => {
+      if (/sale|off|deal|discount/i.test(badge) && !product.originalPrice) {
+        issues.push('"' + product.name + '" carries "' + badge +
+          '" but has no OriginalPrice, so no saving is shown. Fill OriginalPrice or drop the badge.');
+      }
+    });
+  }
+
+  if (issues.length) {
+    console.warn('[playnest] badge audit — ' + issues.length + ' issue(s):');
+    issues.forEach((i) => console.warn('  - ' + i));
+  }
+  return issues;
+}

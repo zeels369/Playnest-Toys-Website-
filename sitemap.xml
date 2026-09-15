@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Single-URL sitemap. The site is one page — every category and product is a
+  filter state on it, not a separate route — so this is the complete, honest
+  list of crawlable URLs, not a placeholder. See SEO-NOTES.md for the larger
+  item (real per-category/product routes) that would make a multi-URL sitemap
+  meaningful.
+-->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://playnesttoys.in/</loc>
+    <lastmod>2026-09-15</lastmod>
+    <changefreq>weekly</changefreq>
+  </url>
+</urlset>
